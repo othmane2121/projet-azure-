@@ -1,0 +1,546 @@
+Étape 2 — Générer le mot de passe d'application
+Allez directement sur ce lien (vous devez être connecté à votre compte Google) :
+→ myaccount.google.com/apppasswords
+Sur cette page :
+1.	Dans le champ "Nom de l'application", tapez SupportTickets
+2.	Cliquer sur Créer
+3.	Google affiche un code de 16 caractères comme ceci :
+abcd efgh ijkl mnop
+Copiez ce code — vous ne pourrez plus le revoir après avoir fermé la fenêtre.
+
+Poure JWS :
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+# Copiez le résultat dans JWT_SECRET
+
+az login
+# Le navigateur s'ouvre → connectez-vous avec votre compte Microsoft
+az account show --output table
+# Vérifiez que votre abonnement est affiché
+Étape 7 — Créer le Resource Group
+az group create --name rg-support-tickets --location swedencentral
+Étape 8 — Créer le serveur SQL Azure
+az sql server create --name support-tickets-sql --resource-group rg-support-tickets --location swedencentral --admin-user sqladmin --admin-password "VotreMotDePasseSQL123!"
+Étape 9 — Créer la base de données SQL
+az sql db create --resource-group rg-support-tickets --server support-tickets-sql --name SupportTicketsDB --service-objective S2
+Étape 10 — Ouvrir le pare-feu SQL
+# Autoriser Azure App Service
+az sql server firewall-rule create --resource-group rg-support-tickets --server support-tickets-sql --name AllowAzureServices --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+
+# Autoriser votre IP locale (pour exécuter le schéma SQL)
+# Trouver votre IP sur https://monip.org puis remplacer X.X.X.X
+az sql server firewall-rule create --resource-group rg-support-tickets --server support-tickets-sql --name AllowMyIP --start-ip-address X.X.X.X --end-ip-address X.X.X.X
+Étape 11 — Exécuter le schéma SQL
+1.	Aller sur portal.azure.com
+2.	Chercher SupportTicketsDB dans la barre de recherche
+3.	Menu gauche → Éditeur de requête
+4.	Se connecter : sqladmin / VotreMotDePasseSQL123!
+5.	Coller tout le contenu de database/schema.sql
+6.	Cliquer Exécuter ▶
+Vérifier que les 6 tables sont créées :
+sql
+SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME;
+Étape 12 — Créer l'App Service Plan S2
+
+az appservice plan create --name asp-support-tickets --resource-group rg-support-tickets --location swedencentral --sku S2 --is-linux --number-of-workers 2
+Étape 13 — Créer la Web App Node.js
+az webapp create --resource-group rg-support-tickets --plan asp-support-tickets --name support-tickets-api --runtime "NODE:22-lts"
+Commande 4 — Configurer le démarrage
+az webapp config set --resource-group rg-support-tickets --name support-tickets-api --startup-file "node server.js"
+Commande 5 — Générer le JWT Secret
+
+$JWT = node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+Write-Host "JWT : $JWT"
+
+Étape 14 — Configurer les variables d'environnement sur Azure
+az webapp config appsettings set `
+  --resource-group rg-support-tickets `
+  --name support-tickets-api `
+  --settings `
+  DB_SERVER="support-tickets-sql.database.windows.net" `
+  DB_NAME="SupportTicketsDB" `
+  DB_USER="sqladmin" `
+  DB_PASSWORD="VotreMotDePasseSQL123!" `
+  JWT_SECRET="$JWT" `
+  SMTP_HOST="smtp.gmail.com" `
+  SMTP_USER="youremail@gmail.com" `
+  SMTP_PASS="rlajwpzjibhopbdo" `    —changer sa
+  NODE_ENV="production" `
+  PORT="3001"
+
+PS C:\Users\hp\Documents\support-tickets> cd C:\Users\hp\Desktop\support-tickets\backend
+PS C:\Users\hp\Desktop\support-tickets\backend> node create-agents.js
+Hash genere: $2a$10$N/WaCw4u98A4LbKBOqsDe.r1f6Vqqd4hIwOtzSNkqcpb2Jrs2Lq4.
+Anciens agents supprimes
+Agents crees: [
+  { id: 4, email: 'admin@support.com', niveau: 'admin' },
+  { id: 5, email: 'sophie.martin@support.com', niveau: 'senior' },
+  { id: 6, email: 'pierre.dubois@support.com', niveau: 'niveau2' }
+]
+PS C:\Users\hp\Desktop\support-tickets\backend> $body = '{"email":"admin@support.com","mot_de_passe":"Admin2024!","type":"agent"}'
+PS C:\Users\hp\Desktop\support-tickets\backend> Invoke-WebRequest `
+>>   -Uri "https://support-tickets-api.azurewebsites.net/api/auth/login" `
+>>   -Method POST `
+>>   -ContentType "application/json" `
+>>   -Body $body `
+>>   -UseBasicParsing
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiZW1haWwiOiJhZG1pbkBzdXBwb3J0LmNvbSIsInR5
+                    cGUiOiJhZ2VudCIsIm5pdmVhdSI6ImFkbWluIiwiaWF0IjoxNzczNzAyMDA3LCJleHAiOjE3NzQzMDY4MDd9.izU4eXKgjAgw8x
+                    2V...
+RawContent        : HTTP/1.1 200 OK
+                    Access-Control-Allow-Origin: *
+                    Content-Length: 337
+                    Content-Type: application/json; charset=utf-8
+                    Date: Mon, 16 Mar 2026 23:00:07 GMT
+                    ETag: W/"151-eFo94UkJoR8REod1H/8t2fbKSio"
+                    Set...
+Forms             :
+Headers           : {[Access-Control-Allow-Origin, *], [Content-Length, 337], [Content-Type, application/json;
+                    charset=utf-8], [Date, Mon, 16 Mar 2026 23:00:07 GMT]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 337
+
+
+Dans la base de donnee :
+
+La colonne derniere_connexion manque dans la table Agents. Allez sur portal.azure.com → SupportTicketsDB → Éditeur de requête et exécutez ces deux requêtes :
+ALTER TABLE Commentaires ADD piece_jointe_url NVARCHAR(500);
+ALTER TABLE Commentaires ADD piece_jointe_url NVARCHAR(500);
+
+-- Ajouter la colonne piece_jointe_url si elle n'existe pas
+IF NOT EXISTS (
+  SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+  WHERE TABLE_NAME='Commentaires' AND COLUMN_NAME='piece_jointe_url'
+)
+ALTER TABLE Commentaires ADD piece_jointe_url NVARCHAR(500);
+
+-- Vérifier les colonnes de la table
+SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
+WHERE TABLE_NAME = 'Commentaires';
+
+-- Voir tous les commentaires avec leur valeur interne
+SELECT id, ticket_id, auteur_type, contenu, interne, date_creation 
+FROM Commentaires 
+ORDER BY date_creation DESC;
+
+-- Corriger TOUS les messages utilisateur mal marqués comme internes
+UPDATE Commentaires SET interne = 0 
+WHERE auteur_type = 'utilisateur';
+
+-- Vérifier le résultat
+SELECT id, ticket_id, auteur_type, contenu, interne 
+FROM Commentaires 
+ORDER BY id DESC;
+✅ Option 1 — Ajouter la colonne SQL
+Exécute ce script dans SQL Server (Azure SQL) :
+
+ALTER TABLE agents
+ADD derniere_connexion DATETIME NULL;
+
+Identifiants de connexion
+Portail Admin :
+·	Email : admin@support.com
+·	Mot de passe : Admin2024!
+
+
+ 1 — Load Balancer intégré App Service (dé)
+powershell
+# Vérifier que le trafic est bien réparti entre les instances
+az webapp show `
+  --name support-tickets-api `
+  --resource-group rg-support-tickets `
+  --query "{instances:sku,affinity:clientAffinityEnabled}" `
+  --output table
+
+# Désactiver l'affinité pour un vrai round-robin
+az webapp update `
+  --name support-tickets-api `
+  --resource-group rg-support-tickets `
+  --client-affinity-enabled false
+Option 2 — Azure Application Gateway (Load Balancer avancé)
+powershell
+# Étape 1 — Créer le réseau virtuel
+az network vnet create `
+  --name vnet-support `
+  --resource-group rg-support-tickets `
+  --location norwayeast `
+  --address-prefix 10.0.0.0/16 `
+  --subnet-name subnet-appgw `
+  --subnet-prefix 10.0.1.0/24
+powershell
+# Étape 2 — Créer une IP publique pour le Load Balancer
+az network public-ip create `
+  --name pip-appgw-support `
+  --resource-group rg-support-tickets `
+  --location norwayeast `
+  --sku Standard `
+  --allocation-method Static
+
+powershell
+# Étape 3 — Créer l'Application Gateway (Load Balancer)
+az network application-gateway create `
+  --name appgw-support `
+  --resource-group rg-support-tickets `
+  --location norwayeast `
+  --sku Standard_v2 `
+  --capacity 2 `
+  --vnet-name vnet-support `
+  --subnet subnet-appgw `
+  --public-ip-address pip-appgw-support `
+  --frontend-port 80 `
+  --http-settings-port 443 `
+  --http-settings-protocol Https `
+  --routing-rule-type Basic `
+  --servers support-tickets-api.azurewebsites.net `
+  --priority 100
+
+powershell
+# Étape 4 — Récupérer l'IP publique du Load Balancer
+az network public-ip show `
+  --name pip-appgw-support `
+  --resource-group rg-support-tickets `
+  --query "ipAddress" --output tsv
+powershell
+# Étape 5 — Vérifier que l'Application Gateway est active
+az network application-gateway show `
+  --name appgw-support `
+  --resource-group rg-support-tickets `
+  --query "{nom:name,etat:operationalState,instances:sku.capacity}" `
+  --output table
+Inacss:
+Étape 1 — Vérifier l'état de l'Application Gateway
+powershell
+az network application-gateway show `
+  --name appgw-support `
+  --resource-group rg-support-tickets `
+  --query "{etat:operationalState, provisioningState:provisioningState}" `
+  --output table
+Étape 2 — Vérifier la santé du backend
+powershell
+az network application-gateway show-backend-health `
+  --name appgw-support `
+  --resource-group rg-support-tickets `
+  --output table
+Étape 3 — Fix le plus courant — le probe HTTP
+Le problème vient souvent que l'Application Gateway envoie des requêtes HTTP sur port 80 mais votre App Service répond uniquement en HTTPS sur port 443. Voici le fix complet :
+powershell
+# Créer un probe de santé qui pointe vers /health
+az network application-gateway probe create `
+  --gateway-name appgw-support `
+  --resource-group rg-support-tickets `
+  --name probe-health `
+  --protocol Https `
+  --host support-tickets-api.azurewebsites.net `
+  --path /health `
+  --interval 30 `
+  --timeout 30 `
+  --threshold 3
+powershell
+# Mettre à jour les HTTP settings pour utiliser HTTPS port 443
+az network application-gateway http-settings update `
+  --gateway-name appgw-support `
+  --resource-group rg-support-tickets `
+  --name appGatewayBackendHttpSettings `
+  --protocol Https `
+  --port 443 `
+  --host-name-from-backend-pool true `
+  --probe probe-health
+Étape 4 — Vérifier le frontend listener
+powershell
+# Voir les listeners configurés
+az network application-gateway http-listener list `
+  --gateway-name appgw-support `
+  --resource-group rg-support-tickets `
+  --output table
+powershell
+# Ajouter listener HTTP port 80 si manquant
+az network application-gateway frontend-port create `
+  --gateway-name appgw-support `
+  --resource-group rg-support-tickets `
+  --name port-80 `
+  --port 80
+Étape 5 — Vérifier le backend pool
+powershell
+# Voir le backend pool
+az network application-gateway address-pool list `
+  --gateway-name appgw-support `
+  --resource-group rg-support-tickets `
+  --output table
+powershell
+# Mettre à jour le backend pool avec la bonne adresse
+az network application-gateway address-pool update `
+  --gateway-name appgw-support `
+  --resource-group rg-support-tickets `
+  --name appGatewayBackendPool `
+  --servers support-tickets-api.azurewebsites.net
+Étape 6 — Appliquer tous les changements
+powershell
+# Redémarrer l'Application Gateway
+az network application-gateway stop `
+  --name appgw-support `
+  --resource-group rg-support-tickets
+
+Start-Sleep -Seconds 30
+
+az network application-gateway start `
+  --name appgw-support `
+  --resource-group rg-support-tickets
+
+Start-Sleep -Seconds 60
+Étape 7 — Tester
+powershell
+# Récupérer l'IP publique
+$IP = az network public-ip show `
+  --name pip-appgw-support `
+  --resource-group rg-support-tickets `
+  --query "ipAddress" --output tsv
+
+Write-Host "IP Application Gateway : $IP"
+
+# Tester
+curl http://$IP/health
+curl http://$IP/user
+curl http://$IP/admin
+
+AZURE FUCTION:
+ÉTAPE 2 — Créer le stockage Azure
+
+az storage account create `
+  --name supportmhstorage `
+  --resource-group rg-support-tickets `
+  --location norwayeast `
+  --sku Standard_LRS
+ÉTAPE 3 — Créer le Function App
+az functionapp create `
+  --name support-mh-func `
+  --resource-group rg-support-tickets `
+  --storage-account supportmhstorage `
+  --consumption-plan-location norwayeast `
+  --runtime node `
+  --runtime-version 20 `
+  --functions-version 4 `
+  --os-type linux
+ÉTAPE 4 — Configurer les variables SQL
+az functionapp config appsettings set --name support-mh-func --resource-group rg-support-tickets --settings DB_SERVER="support-tickets-sql.database.windows.net"
+az functionapp config appsettings set --name support-mh-func --resource-group rg-support-tickets --settings DB_NAME="SupportTicketsDB"
+az functionapp config appsettings set --name support-mh-func --resource-group rg-support-tickets --settings DB_USER="sqladmin"
+az functionapp config appsettings set --name support-mh-func --resource-group rg-support-tickets --settings DB_PASSWORD="VotreMotDePasseSQL123!"
+
+
+cd C:\Users\hp\Documents\support-tickets\functions
+func azure functionapp publish support-mh-func --node
+```
+
+Attendu :
+```
+Getting site publishing info...
+Uploading package...
+Deployment successful
+Remote build succeeded!
+Étape 3 — Récupérer la clé
+
+$FUNC_KEY = az functionapp keys list `
+  --name support-mh-func `
+  --resource-group rg-support-tickets `
+  --query "masterKey" --output tsv
+
+Write-Host "Cle : $FUNC_KEY"
+Étape 4 — Tester sur Azure
+
+# Test Function 1
+Invoke-WebRequest `
+  -Uri "https://support-mh-func.azurewebsites.net/api/GenerateTicketNumber?code=$FUNC_KEY" `
+  -Method GET -UseBasicParsing
+# Test Function 2
+$body = '{"categorie":"reseau","priorite":"urgent"}'
+Invoke-WebRequest `
+  -Uri "https://support-mh-func.azurewebsites.net/api/AssignAgent?code=$FUNC_KEY" `
+  -Method POST -ContentType "application/json" `
+  -Body $body –UseBasicParsing
+Étape 5 — Configurer les URLs dans l'App Service
+
+az webapp config appsettings set `
+  --resource-group rg-support-tickets `
+  --name support-tickets-api `
+  --settings FUNC_TICKET_URL="https://support-mh-func.azurewebsites.net/api/GenerateTicketNumber?code=$FUNC_KEY"
+
+az webapp config appsettings set `
+  --resource-group rg-support-tickets `
+  --name support-tickets-api `
+  --settings FUNC_ASSIGN_URL="https://support-mh-func.azurewebsites.net/api/AssignAgent?code=$FUNC_KEY"
+
+Étape 6 — Vérifier que tout fonctionne
+
+curl https://support-tickets-api.azurewebsites.net/health
+Vérification 3 — Tester Function 1 sur Azure
+
+$FUNC_KEY = az functionapp keys list `
+  --name support-mh-func `
+  --resource-group rg-support-tickets `
+  --query "masterKey" --output tsv
+
+$r1 = Invoke-WebRequest `
+  -Uri "https://support-mh-func.azurewebsites.net/api/GenerateTicketNumber?code=$FUNC_KEY" `
+  -Method GET -UseBasicParsing
+Write-Host "Function 1 : $($r1.StatusCode)"
+Write-Host $r1.Content
+
+Vérification 4 — Tester Function 2 sur Azure
+
+$body = '{"categorie":"reseau","priorite":"urgent"}'
+$r2 = Invoke-WebRequest `
+  -Uri "https://support-mh-func.azurewebsites.net/api/AssignAgent?code=$FUNC_KEY" `
+  -Method POST -ContentType "application/json" `
+  -Body $body -UseBasicParsing
+Write-Host "Function 2 : $($r2.StatusCode)"
+Write-Host $r2.Content
+
+
+Teter de donner 
+
+SELECT 
+    id, nom, prenom, email, telephone, 
+    departement, date_creation, statut
+FROM Utilisateurs
+ORDER BY date_creation DESC;
+
+SELECT 
+    id,
+    prenom,
+    nom,
+    email,
+    specialite,
+    niveau,
+    tickets_resolus,
+    note_moyenne,
+    disponible,
+    date_creation
+FROM Agents
+ORDER BY id ASC;
+
+
+
+SELECT 
+    a.id,
+    a.prenom + ' ' + a.nom AS agent,
+    a.email,
+    a.specialite,
+    a.niveau,
+    a.disponible,
+    COUNT(t.id) AS tickets_en_cours,
+    a.tickets_resolus
+FROM Agents a
+LEFT JOIN Tickets t ON t.agent_id = a.id 
+    AND t.statut != 'resolu'
+GROUP BY 
+    a.id, a.nom, a.prenom, a.email,
+    a.specialite, a.niveau,
+    a.disponible, a.tickets_resolus
+ORDER BY a.id;
+
+Colle ces requêtes une par une dans l'Éditeur de requête Azure :
+1. Utilisateurs :
+sql
+SELECT id, prenom, nom, email, telephone, 
+       departement, statut, date_creation
+FROM Utilisateurs
+ORDER BY id;
+2. Agents :
+sql
+SELECT id, prenom, nom, email, specialite, 
+       niveau, tickets_resolus, note_moyenne, disponible
+FROM Agents
+ORDER BY id;
+3. Tickets :
+sql
+SELECT 
+    t.id, t.reference, t.titre, t.categorie,
+    t.priorite, t.statut,
+    u.prenom + ' ' + u.nom AS utilisateur,
+    a.prenom + ' ' + a.nom AS agent,
+    t.date_creation, t.date_resolution
+FROM Tickets t
+LEFT JOIN Utilisateurs u ON u.id = t.utilisateur_id
+LEFT JOIN Agents a ON a.id = t.agent_id
+ORDER BY t.date_creation DESC;
+4. Historique des tickets :
+sql
+SELECT 
+    h.id, t.reference,
+    h.auteur_type, h.action,
+    h.ancien_statut, h.nouveau_statut,
+    h.commentaire, h.date_action
+FROM HistoriqueTickets h
+JOIN Tickets t ON t.id = h.ticket_id
+ORDER BY h.date_action DESC;
+5. Commentaires :
+sql
+SELECT 
+    c.id, t.reference,
+    c.auteur_type, c.contenu,
+    c.interne, c.date_creation
+FROM Commentaires c
+JOIN Tickets t ON t.id = c.ticket_id
+ORDER BY c.date_creation DESC;
+6. Notifications :
+sql
+SELECT 
+    n.id, n.destinataire_type,
+    n.destinataire_id, t.reference,
+    n.type, n.message, n.lue,
+    n.date_creation
+FROM Notifications n
+LEFT JOIN Tickets t ON t.id = n.ticket_id
+ORDER BY n.date_creation DESC;
+7. Vue globale — tout en une seule requête :
+sql
+SELECT 
+    t.reference,
+    t.titre,
+    t.priorite,
+    t.statut,
+    t.categorie,
+    u.prenom + ' ' + u.nom AS utilisateur,
+    u.email AS email_utilisateur,
+    a.prenom + ' ' + a.nom AS agent,
+    a.specialite,
+    COUNT(DISTINCT c.id) AS nb_commentaires,
+    COUNT(DISTINCT h.id) AS nb_historique,
+    t.date_creation,
+    t.date_resolution
+FROM Tickets t
+LEFT JOIN Utilisateurs u ON u.id = t.utilisateur_id
+LEFT JOIN Agents a ON a.id = t.agent_id
+LEFT JOIN Commentaires c ON c.ticket_id = t.id
+LEFT JOIN HistoriqueTickets h ON h.ticket_id = t.id
+GROUP BY 
+    t.reference, t.titre, t.priorite, t.statut, t.categorie,
+    u.prenom, u.nom, u.email,
+    a.prenom, a.nom, a.specialite,
+    t.date_creation, t.date_resolution
+ORDER BY t.date_creation DESC;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
