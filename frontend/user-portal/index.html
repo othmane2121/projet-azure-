@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SupportDesk — Portail Utilisateur</title>
+  <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;600;700&family=Satoshi:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#000000;--surface:#000000d2;--surface2:#000000;--border:#ffffff;
+      --blue:#293b52;;--green:#10b981;--yellow:#f59e0b;--red:#ef4444;
+      --purple:#8b5cf6;--text:#f0f6ff;--muted:#7ca3c4;--dim:#3d5a76;
+    }
+    body{font-family:'Satoshi',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    *{scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+
+    /* AUTH */
+    #auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+    .auth-wrap{display:grid;grid-template-columns:1fr 1fr;max-width:860px;width:100%;border-radius:22px;overflow:hidden;border:1px solid var(--border)}
+    .auth-left{background:linear-gradient(135deg,#0a1628,#0d1f35);padding:48px 40px;display:flex;flex-direction:column;justify-content:center}
+    .auth-logo{font-family:'Clash Display',sans-serif;font-size:24px;font-weight:700;margin-bottom:36px}
+    .auth-logo span{color:var(--blue)}
+    .auth-left h2{font-family:'Clash Display',sans-serif;font-size:30px;font-weight:700;line-height:1.2;margin-bottom:14px}
+    .auth-left h2 span{color:var(--blue)}
+    .auth-left p{color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:28px}
+    .feat{display:flex;flex-direction:column;gap:12px}
+    .feat-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+    .feat-dot{width:7px;height:7px;border-radius:50%;background:var(--blue);flex-shrink:0}
+    .auth-right{background:var(--surface);padding:44px 38px}
+    .tabs{display:flex;background:var(--surface2);border-radius:10px;padding:4px;margin-bottom:28px}
+    .tab{flex:1;padding:9px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;border-radius:8px;transition:all 0.2s;color:var(--muted)}
+    .tab.active{background:var(--blue);color:white}
+    .fg{margin-bottom:15px}
+    .fg label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:6px}
+    .fg input,.fg select,.fg textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:10px;font-family:'Satoshi',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s}
+    .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--blue)}
+    .fg textarea{resize:vertical;min-height:90px}
+    .frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .btn-auth{width:100%;padding:13px;background:var(--blue);border:none;border-radius:10px;color:white;font-family:'Clash Display',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:opacity 0.2s;margin-top:4px}
+    .btn-auth:hover{opacity:0.88}
+
+    /* APP */
+    #app{display:none}
+    #app.show{display:block}
+    .layout{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+    .sb{background:var(--surface);border-right:1px solid var(--border);padding:24px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
+    .sb-logo{font-family:'Clash Display',sans-serif;font-size:19px;font-weight:700;padding:0 8px;margin-bottom:32px}
+    .sb-logo span{color:var(--blue)}
+    .nl{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--dim);padding:0 8px;margin:18px 0 5px}
+    .ni{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all 0.15s;margin-bottom:1px}
+    .ni:hover{background:var(--surface2);color:var(--text)}
+    .ni.active{background:rgba(14,165,233,0.1);color:var(--blue)}
+    .ni .ico{font-size:15px;width:20px;text-align:center}
+    .nbadge{margin-left:auto;background:var(--red);color:white;font-size:9px;font-weight:800;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;display:none}
+    .sb-user{margin-top:auto;padding:12px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
+    .sb-user-name{font-size:13px;font-weight:600}
+    .sb-user-email{font-size:11px;color:var(--muted);margin-top:2px}
+    .btn-out{margin-top:9px;width:100%;padding:7px;background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;cursor:pointer;transition:all 0.2s}
+    .btn-out:hover{border-color:var(--red);color:var(--red)}
+
+    /* MAIN */
+    .main{padding:28px 32px;overflow-y:auto}
+    .page{display:none}
+    .page.active{display:block}
+    .ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+    .pt{font-family:'Clash Display',sans-serif;font-size:24px;font-weight:700}
+    .ps{font-size:12px;color:var(--muted);margin-top:3px}
+
+    /* STATS */
+    .sg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+    .sc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px}
+    .sc.blue{border-top:2px solid var(--blue)}.sc.yellow{border-top:2px solid var(--yellow)}.sc.purple{border-top:2px solid var(--purple)}.sc.green{border-top:2px solid var(--green)}
+    .sv{font-family:'Clash Display',sans-serif;font-size:28px;font-weight:800}
+    .sl{font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:0.5px}
+
+    /* TABLE */
+    .tc{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+    .th-bar{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .th-title{font-family:'Clash Display',sans-serif;font-size:14px;font-weight:700}
+    table{width:100%;border-collapse:collapse}
+    th{padding:10px 16px;background:var(--surface2);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);font-weight:600;text-align:left}
+    td{padding:13px 16px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,0.012)}
+    .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+    .bu{background:rgba(239,68,68,0.15);color:#fca5a5}.bn{background:rgba(14,165,233,0.12);color:#38bdf8}.bf{background:rgba(100,116,139,0.15);color:var(--muted)}
+    .bo{background:rgba(14,165,233,0.12);color:#38bdf8}.bec{background:rgba(245,158,11,0.12);color:#fcd34d}.br{background:rgba(16,185,129,0.12);color:#6ee7b7}.bfe{background:rgba(100,116,139,0.15);color:var(--muted)}.bea{background:rgba(139,92,246,0.12);color:#c4b5fd}
+
+    /* BUTTONS */
+    .bsm{padding:6px 13px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;font-family:'Satoshi',sans-serif}
+    .bg{background:transparent;border:1px solid var(--border);color:var(--muted)}.bg:hover{border-color:var(--blue);color:var(--blue)}
+    .bb{background:var(--blue);color:white}.bb:hover{opacity:0.85}
+    .bprim{padding:11px 22px;background:var(--blue);border:none;border-radius:10px;color:white;font-family:'Clash Display',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:opacity 0.2s}
+    .bprim:hover{opacity:0.88}
+    .bprim:disabled{opacity:0.5;cursor:not-allowed}
+
+    /* FORM */
+    .fcard{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px;max-width:740px}
+    .fsect{font-family:'Clash Display',sans-serif;font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;padding-bottom:9px;border-bottom:1px solid var(--border)}
+    .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .pcard{padding:13px;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.2s;text-align:center}
+    .pcard.su{border-color:var(--red);background:rgba(239,68,68,0.07)}
+    .pcard.sn{border-color:var(--blue);background:rgba(14,165,233,0.07)}
+    .pcard.sf{border-color:var(--dim);background:rgba(61,87,118,0.08)}
+    .pemo{font-size:20px;margin-bottom:5px}.pname{font-size:13px;font-weight:700}.pdesc{font-size:11px;color:var(--muted);margin-top:2px}
+
+    /* DETAIL */
+    .dgrid{display:grid;grid-template-columns:1fr 300px;gap:18px}
+    .dcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:14px}
+    .ir{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+    .ir:last-child{border-bottom:none}
+    .il{color:var(--muted)}.iv{font-weight:600}
+
+    /* CHAT CORRIGE - user peut repondre */
+    .chat-wrap{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    .chat-header{padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .chat-header-title{font-size:13px;font-weight:700}
+    .chat-msgs{max-height:400px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;background:var(--bg)}
+    .msg-bubble{display:flex;gap:10px;align-items:flex-start}
+    .msg-bubble.me{flex-direction:row-reverse}
+    .msg-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+    .msg-av.user{background:var(--blue);color:white}
+    .msg-av.agent{background:var(--purple);color:white}
+    .msg-av.system{background:var(--surface2);color:var(--muted);border:1px solid var(--border);font-size:10px}
+    .msg-content{max-width:75%}
+    .msg-name{font-size:10px;color:var(--muted);margin-bottom:4px}
+    .msg-bubble.me .msg-name{text-align:right}
+    .msg-text{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13px;line-height:1.6;word-break:break-word}
+    .msg-bubble.me .msg-text{background:rgba(14,165,233,0.15);border-color:rgba(14,165,233,0.3)}
+    .msg-bubble.agent .msg-text{background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.3)}
+    .msg-time{font-size:10px;color:var(--dim);margin-top:4px}
+    .msg-bubble.me .msg-time{text-align:right}
+
+    /* Image dans les messages */
+    .msg-img{max-width:240px;max-height:180px;border-radius:8px;margin-top:8px;cursor:pointer;border:1px solid var(--border)}
+    .msg-img:hover{opacity:0.9}
+
+    /* Zone de saisie amelioree */
+    .chat-input-zone{padding:14px 16px;border-top:1px solid var(--border);background:var(--surface)}
+    .chat-input-row{display:flex;gap:10px;align-items:flex-end}
+    .chat-textarea{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:10px;font-family:'Satoshi',sans-serif;font-size:13px;outline:none;resize:none;min-height:42px;max-height:120px;transition:border-color 0.2s}
+    .chat-textarea:focus{border-color:var(--blue)}
+    .chat-actions{display:flex;gap:8px;align-items:flex-end}
+    .btn-attach{padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--muted);cursor:pointer;font-size:16px;transition:all 0.2s;white-space:nowrap}
+    .btn-attach:hover{border-color:var(--blue);color:var(--blue)}
+    .btn-send{padding:10px 18px;background:var(--blue);border:none;border-radius:10px;color:white;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+    .btn-send:disabled{opacity:0.5;cursor:not-allowed}
+    .file-preview{font-size:11px;color:var(--muted);margin-top:6px;padding:6px 10px;background:var(--surface2);border-radius:6px;display:none}
+    #attach-input{display:none}
+
+    /* Lightbox pour images */
+    .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;align-items:center;justify-content:center;cursor:pointer}
+    .lightbox.open{display:flex}
+    .lightbox img{max-width:90vw;max-height:90vh;border-radius:8px}
+
+    /* TOAST */
+    .toasts{position:fixed;bottom:18px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+    .toast{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 15px;font-size:13px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:si 0.3s ease;max-width:320px}
+    .toast.ok{border-left:3px solid var(--green)}.toast.err{border-left:3px solid var(--red)}
+    @keyframes si{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+    .loader{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading{display:flex;align-items:center;justify-content:center;padding:36px;gap:10px;color:var(--muted);font-size:13px}
+    .empty{text-align:center;padding:44px;color:var(--muted);font-size:13px}
+    select option{background:var(--surface2)}
+
+    @media(max-width:768px){
+      .auth-wrap{grid-template-columns:1fr}.auth-left{display:none}
+      .layout{grid-template-columns:1fr}.sb{display:none}
+      .main{padding:16px}.sg{grid-template-columns:1fr 1fr}
+      .dgrid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<!-- LIGHTBOX pour voir les images en grand -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="Image">
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-wrap">
+    <div class="auth-left">
+      <div class="auth-logo">SupportMH<span></span></div>
+      <h2>Votre support<br>en ligne<span></span></h2>
+      <p>Soumettez vos tickets, suivez leur avancement et communiquez directement avec nos agents.</p>
+      <div class="feat">
+        <div class="feat-item"><div class="feat-dot"></div>Ticket créé en 30 secondes</div>
+        <div class="feat-item"><div class="feat-dot"></div>Email de confirmation automatique</div>
+        <div class="feat-item"><div class="feat-dot"></div>Messagerie avec pièces jointes</div>
+        <div class="feat-item"><div class="feat-dot"></div>Suivi du statut en temps réel</div>
+      </div>
+    </div>
+    <div class="auth-right">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('login')">Connexion</div>
+        <div class="tab" onclick="switchTab('register')">Inscription</div>
+      </div>
+      <div id="form-login">
+        <div class="fg"><label>Email</label><input type="email" id="l-email" placeholder="vous@entreprise.com" onkeydown="if(event.key==='Enter')login()"></div>
+        <div class="fg"><label>Mot de passe</label><input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"></div>
+        <button class="btn-auth" onclick="login()">Se connecter</button>
+      </div>
+      <div id="form-register" style="display:none">
+        <div class="frow">
+          <div class="fg"><label>Prénom</label><input type="text" id="r-prenom" placeholder="Jean"></div>
+          <div class="fg"><label>Nom</label><input type="text" id="r-nom" placeholder="Dupont"></div>
+        </div>
+        <div class="fg"><label>Email</label><input type="email" id="r-email" placeholder="jean@entreprise.com"></div>
+        <div class="fg"><label>Département</label>
+          <select id="r-dept">
+            <option value="">Sélectionner...</option>
+            <option>Comptabilité</option><option>RH</option><option>Marketing</option>
+            <option>Informatique</option><option>Commercial</option><option>Direction</option><option>Autre</option>
+          </select>
+        </div>
+        <div class="fg"><label>Mot de passe</label><input type="password" id="r-pass" placeholder="Min. 8 caractères"></div>
+        <button class="btn-auth" onclick="register()">Créer mon compte</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="layout">
+    <aside class="sb">
+      <div class="sb-logo">Support<span>M</span>H</div>
+      <span class="nl">Navigation</span>
+      <div class="ni active" onclick="showPage('dashboard')" data-page="dashboard"><span class="ico">📊</span>Tableau de bord</div>
+      <div class="ni" onclick="showPage('tickets')" data-page="tickets"><span class="ico">🎫</span>Mes tickets<span class="nbadge" id="badge-open">0</span></div>
+      <div class="ni" onclick="showPage('nouveau')" data-page="nouveau"><span class="ico">➕</span>Nouveau ticket</div>
+      <span class="nl">Communication</span>
+      <div class="ni" onclick="showPage('messages')" data-page="messages"><span class="ico">💬</span>Messages<span class="nbadge" id="badge-msg">0</span></div>
+      <div class="sb-user">
+        <div class="sb-user-name" id="sb-name">—</div>
+        <div class="sb-user-email" id="sb-email">—</div>
+        <button class="btn-out" onclick="logout()">⬅ Déconnexion</button>
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="ph">
+          <div><div class="pt" id="welcome">Bonjour 👋</div><div class="ps">Vue d'ensemble</div></div>
+          <button class="bprim" onclick="showPage('nouveau')">+ Nouveau ticket</button>
+        </div>
+        <div class="sg">
+          <div class="sc blue"><div class="sv" id="s-tot">—</div><div class="sl">Total</div></div>
+          <div class="sc yellow"><div class="sv" id="s-open">—</div><div class="sl">Ouverts</div></div>
+          <div class="sc purple"><div class="sv" id="s-prog">—</div><div class="sl">En cours</div></div>
+          <div class="sc green"><div class="sv" id="s-done">—</div><div class="sl">Résolus</div></div>
+        </div>
+        <div class="tc">
+          <div class="th-bar"><div class="th-title">Tickets récents</div></div>
+          <div id="dash-list"><div class="loading"><div class="loader"></div> Chargement...</div></div>
+        </div>
+      </div>
+
+      <!-- MES TICKETS -->
+      <div class="page" id="page-tickets">
+        <div class="ph">
+          <div><div class="pt">Mes Tickets</div><div class="ps">Historique de toutes vos demandes</div></div>
+          <select id="f-statut" onchange="loadTickets()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:12px;outline:none">
+            <option value="">Tous statuts</option>
+            <option value="ouvert">Ouvert</option><option value="en_cours">En cours</option>
+            <option value="en_attente">En attente</option><option value="resolu">Résolu</option>
+          </select>
+        </div>
+        <div class="tc"><div id="tickets-list"><div class="loading"><div class="loader"></div> Chargement...</div></div></div>
+      </div>
+
+      <!-- NOUVEAU TICKET -->
+      <div class="page" id="page-nouveau">
+        <div class="ph"><div><div class="pt">Nouveau Ticket</div><div class="ps">Décrivez votre problème</div></div></div>
+        <div class="fcard">
+          <div class="fsect">📋 Informations</div>
+          <div class="fg"><label>Titre *</label><input type="text" id="t-titre" placeholder="Ex: Impossible d'accéder au VPN"></div>
+          <div class="frow">
+            <div class="fg"><label>Catégorie *</label>
+              <select id="t-cat">
+                <option value="">Sélectionner...</option>
+                <option value="materiel">🖥️ Matériel</option>
+                <option value="logiciel">💾 Logiciel</option>
+                <option value="reseau">🌐 Réseau</option>
+                <option value="acces">🔑 Accès</option>
+                <option value="autre">❓ Autre</option>
+              </select>
+            </div>
+            <div class="fg"><label>Tags</label><input type="text" id="t-tags" placeholder="Ex: VPN, outlook"></div>
+          </div>
+          <div class="fg"><label>Description *</label><textarea id="t-desc" placeholder="Décrivez le problème en détail..."></textarea></div>
+          <div class="fsect" style="margin-top:22px">⚡ Priorité</div>
+          <div class="pgrid">
+            <div class="pcard" id="pc-urgent" onclick="selPrio('urgent')"><div class="pemo">🔴</div><div class="pname">Urgent</div><div class="pdesc">Bloque mon travail</div></div>
+            <div class="pcard sn" id="pc-normal" onclick="selPrio('normal')"><div class="pemo">🟡</div><div class="pname">Normal</div><div class="pdesc">Gêne sans bloquer</div></div>
+            <div class="pcard" id="pc-faible" onclick="selPrio('faible')"><div class="pemo">🟢</div><div class="pname">Faible</div><div class="pdesc">Question / amélioration</div></div>
+          </div>
+          <input type="hidden" id="t-prio" value="normal">
+          <div class="fg" style="margin-top:18px">
+            <label>Pièce jointe (image, PDF, max 5MB)</label>
+            <input type="file" id="t-file" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx">
+          </div>
+          <div style="display:flex;gap:10px;margin-top:20px">
+            <button class="bprim" id="btn-submit" onclick="submitTicket()">↗ Soumettre le ticket</button>
+            <button class="bsm bg" style="padding:11px 20px" onclick="showPage('dashboard')">Annuler</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DETAIL TICKET -->
+      <div class="page" id="page-detail">
+        <div class="ph">
+          <div>
+            <button class="bsm bg" onclick="showPage('tickets')" style="margin-bottom:8px">← Retour</button>
+            <div class="pt" id="detail-title">Ticket</div>
+          </div>
+          <button class="bsm bg" onclick="refreshDetail()">↻ Actualiser</button>
+        </div>
+        <div id="detail-body"><div class="loading"><div class="loader"></div> Chargement...</div></div>
+      </div>
+
+      <!-- MESSAGES -->
+      <div class="page" id="page-messages">
+        <div class="ph">
+          <div><div class="pt">Messages</div><div class="ps">Vos conversations avec le support</div></div>
+          <button class="bsm bg" onclick="loadMessages()">↻ Actualiser</button>
+        </div>
+        <div id="messages-body"><div class="loading"><div class="loader"></div> Chargement...</div></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<input type="file" id="attach-input" accept=".jpg,.jpeg,.png,.gif,.pdf" onchange="previewAttach(this)">
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════
+const API = '/api';  // URL relative — fonctionne sur Azure
+
+let user = null, token = null, selPrio_ = 'normal', currentDetailId = null;
+
+// ── AUTH ──────────────────────────────────
+function switchTab(t) {
+  document.getElementById('tab-btn-login')?.classList.toggle('active', t==='login');
+  document.getElementById('tab-btn-register')?.classList.toggle('active', t==='register');
+  document.querySelectorAll('.tab')[0].classList.toggle('active', t==='login');
+  document.querySelectorAll('.tab')[1].classList.toggle('active', t==='register');
+  document.getElementById('form-login').style.display = t==='login'?'block':'none';
+  document.getElementById('form-register').style.display = t==='register'?'block':'none';
+}
+
+async function login() {
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  if (!email||!pass) return toast('Remplissez tous les champs','err');
+  try {
+    const r = await fetch(`${API}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,mot_de_passe:pass,type:'utilisateur'})});
+    const d = await r.json();
+    if (!r.ok) return toast(d.error||'Identifiants incorrects','err');
+    saveAndInit(d.token, d.user);
+  } catch { toast('Serveur inaccessible','err'); }
+}
+
+async function register() {
+  const prenom = document.getElementById('r-prenom').value.trim();
+  const nom    = document.getElementById('r-nom').value.trim();
+  const email  = document.getElementById('r-email').value.trim();
+  const dept   = document.getElementById('r-dept').value;
+  const pass   = document.getElementById('r-pass').value;
+  if (!prenom||!nom||!email||!pass) return toast('Champs obligatoires manquants','err');
+  if (pass.length<8) return toast('Mot de passe trop court','err');
+  try {
+    const r = await fetch(`${API}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prenom,nom,email,departement:dept,mot_de_passe:pass})});
+    const d = await r.json();
+    if (!r.ok) return toast(d.error||'Erreur inscription','err');
+    toast(`Compte créé ! Email de confirmation envoyé à ${email} ✅`,'ok');
+    saveAndInit(d.token, d.user);
+  } catch { toast('Serveur inaccessible','err'); }
+}
+
+function saveAndInit(t, u) {
+  token=t; user=u;
+  localStorage.setItem('sd_token', t);
+  localStorage.setItem('sd_user', JSON.stringify(u));
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').classList.add('show');
+  document.getElementById('sb-name').textContent=`${u.prenom} ${u.nom}`;
+  document.getElementById('sb-email').textContent=u.email;
+  document.getElementById('welcome').textContent=`Bonjour, ${u.prenom} 👋`;
+  loadDashboard();
+}
+
+function logout() {
+  localStorage.removeItem('sd_token'); localStorage.removeItem('sd_user');
+  token=null; user=null;
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('auth-screen').style.display='flex';
+}
+
+// ── NAVIGATION ────────────────────────────
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
+  document.getElementById(`page-${p}`)?.classList.add('active');
+  document.querySelector(`[data-page="${p}"]`)?.classList.add('active');
+  if (p==='dashboard') loadDashboard();
+  else if (p==='tickets') loadTickets();
+  else if (p==='messages') loadMessages();
+}
+
+// ── DASHBOARD ─────────────────────────────
+async function loadDashboard() {
+  document.getElementById('dash-list').innerHTML=`<div class="loading"><div class="loader"></div> Chargement...</div>`;
+  try {
+    const r = await fetch(`${API}/tickets?limit=5`,{headers:{Authorization:`Bearer ${token}`}});
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    const tickets = d.tickets||[];
+    document.getElementById('s-tot').textContent=tickets.length;
+    document.getElementById('s-open').textContent=tickets.filter(t=>t.statut==='ouvert').length;
+    document.getElementById('s-prog').textContent=tickets.filter(t=>t.statut==='en_cours').length;
+    document.getElementById('s-done').textContent=tickets.filter(t=>['resolu','ferme'].includes(t.statut)).length;
+    const open=tickets.filter(t=>['ouvert','en_cours'].includes(t.statut)).length;
+    const b=document.getElementById('badge-open');
+    b.textContent=open; b.style.display=open>0?'inline-block':'none';
+    renderTable('dash-list',tickets.slice(0,5));
+  } catch { document.getElementById('dash-list').innerHTML=`<div class="empty">Impossible de charger les tickets.</div>`; }
+}
+
+// ── TICKETS ───────────────────────────────
+async function loadTickets() {
+  document.getElementById('tickets-list').innerHTML=`<div class="loading"><div class="loader"></div> Chargement...</div>`;
+  const statut=document.getElementById('f-statut')?.value||'';
+  try {
+    const r=await fetch(`${API}/tickets${statut?`?statut=${statut}`:''}`,{headers:{Authorization:`Bearer ${token}`}});
+    if (!r.ok) throw new Error();
+    const d=await r.json();
+    renderTable('tickets-list',d.tickets||[]);
+  } catch { document.getElementById('tickets-list').innerHTML=`<div class="empty">Impossible de charger.</div>`; }
+}
+
+function renderTable(id, tickets) {
+  const el=document.getElementById(id);
+  if (!tickets.length){el.innerHTML=`<div class="empty">Aucun ticket pour le moment</div>`;return;}
+  el.innerHTML=`<table>
+    <thead><tr><th>Référence</th><th>Titre</th><th>Priorité</th><th>Statut</th><th>Agent</th><th>Messages</th><th>Date</th><th></th></tr></thead>
+    <tbody>${tickets.map(t=>`<tr>
+      <td style="font-family:'Clash Display';font-size:11px;font-weight:700;color:var(--blue)">${t.reference}</td>
+      <td style="font-weight:600;font-size:13px">${t.titre}</td>
+      <td><span class="badge b${t.priorite[0]}">${t.priorite}</span></td>
+      <td><span class="badge b${t.statut.replace('_','').replace('_','')}">${sLbl(t.statut)}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${t.agent_nom||'<span style="color:var(--yellow)">En attente</span>'}</td>
+      <td style="font-size:12px;color:${(t.nb_commentaires||0)>0?'var(--blue)':'var(--muted)'}">${t.nb_commentaires||0} msg</td>
+      <td style="font-size:11px;color:var(--dim)">${fd(t.date_creation)}</td>
+      <td><button class="bsm bg" onclick="openDetail(${t.id})">Voir →</button></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+// ── DETAIL TICKET + CHAT COMPLET ──────────
+async function openDetail(id) {
+  currentDetailId=id;
+  showPage('detail');
+  document.getElementById('detail-title').textContent='Chargement...';
+  document.getElementById('detail-body').innerHTML=`<div class="loading"><div class="loader"></div></div>`;
+  await fetchDetail(id);
+}
+
+async function refreshDetail() {
+  if (currentDetailId) await fetchDetail(currentDetailId);
+}
+
+async function fetchDetail(id) {
+  try {
+    const r=await fetch(`${API}/tickets/${id}`,{headers:{Authorization:`Bearer ${token}`}});
+    if (!r.ok) throw new Error();
+    const d=await r.json();
+    renderDetail(d.ticket, d.commentaires||[]);
+  } catch { document.getElementById('detail-body').innerHTML=`<div class="empty">Impossible de charger.</div>`; }
+}
+
+function renderDetail(ticket, commentaires) {
+  document.getElementById('detail-title').textContent=ticket.reference;
+  const msgs=commentaires.filter(c=>!c.interne);
+  const BASE = window.location.origin;
+
+  document.getElementById('detail-body').innerHTML=`
+    <div class="dgrid">
+      <div>
+        <!-- Infos ticket -->
+        <div class="dcard">
+          <div style="font-size:11px;color:var(--blue);font-weight:700;margin-bottom:5px">${ticket.reference}</div>
+          <div style="font-family:'Clash Display';font-size:20px;font-weight:700;margin-bottom:12px">${ticket.titre}</div>
+          <div style="display:flex;gap:8px;margin-bottom:14px">
+            <span class="badge b${ticket.priorite[0]}">${ticket.priorite}</span>
+            <span class="badge b${ticket.statut.replace('_','').replace('_','')}">${sLbl(ticket.statut)}</span>
+          </div>
+          <div style="color:var(--muted);line-height:1.7;font-size:14px">${ticket.description||''}</div>
+          ${ticket.piece_jointe_url?`
+            <div style="margin-top:14px;padding:10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:8px">📎 Pièce jointe originale</div>
+              ${isImage(ticket.piece_jointe_url)?
+                `<img src="${BASE}${ticket.piece_jointe_url}" class="msg-img" onclick="openLightbox('${BASE}${ticket.piece_jointe_url}')" alt="Pièce jointe">`:
+                `<a href="${BASE}${ticket.piece_jointe_url}" target="_blank" style="color:var(--blue);font-size:13px">📄 Télécharger le fichier</a>`}
+            </div>`:''}
+        </div>
+
+        <!-- CHAT CORRIGE - utilisateur peut répondre -->
+        <div class="chat-wrap">
+          <div class="chat-header">
+            <div class="chat-header-title">💬 Conversation avec le support (${msgs.length} message(s))</div>
+            <button class="bsm bg" onclick="refreshDetail()" style="font-size:11px">↻ Actualiser</button>
+          </div>
+          <div class="chat-msgs" id="chat-${ticket.id}">
+            ${msgs.length===0?`<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px">Aucun message — envoyez un message pour contacter l'agent</div>`:''}
+            ${msgs.map(m=>renderMsg(m, BASE)).join('')}
+          </div>
+          ${ticket.statut!=='ferme'?`
+          <!-- ZONE DE SAISIE COMPLETE -->
+          <div class="chat-input-zone">
+            <div class="chat-input-row">
+              <textarea class="chat-textarea" id="chat-input-${ticket.id}"
+                placeholder="Répondre à l'agent..."
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg(${ticket.id})}"></textarea>
+              <div class="chat-actions">
+                <button class="btn-attach" onclick="triggerAttach(${ticket.id})" title="Joindre une image">📎</button>
+                <button class="btn-send" id="send-btn-${ticket.id}" onclick="sendMsg(${ticket.id})">Envoyer</button>
+              </div>
+            </div>
+            <div class="file-preview" id="file-preview-${ticket.id}"></div>
+          </div>`:`<div style="padding:12px;font-size:12px;color:var(--muted);border-top:1px solid var(--border)">Ce ticket est fermé</div>`}
+        </div>
+      </div>
+
+      <div>
+        <div class="dcard">
+          <div style="font-family:'Clash Display';font-size:14px;font-weight:700;margin-bottom:14px">ℹ️ Informations</div>
+          <div class="ir"><span class="il">Catégorie</span><span class="iv">${cLbl(ticket.categorie)}</span></div>
+          <div class="ir"><span class="il">Agent</span><span class="iv">${ticket.agent_nom||'<span style="color:var(--yellow)">Non assigné</span>'}</span></div>
+          <div class="ir"><span class="il">Créé le</span><span class="iv">${fdt(ticket.date_creation)}</span></div>
+          ${ticket.sla_echeance?`<div class="ir"><span class="il">SLA</span><span class="iv" style="color:${new Date(ticket.sla_echeance)<new Date()?'var(--red)':'var(--green)'}">${fdt(ticket.sla_echeance)}</span></div>`:''}
+          ${ticket.date_resolution?`<div class="ir"><span class="il">Résolu le</span><span class="iv" style="color:var(--green)">${fdt(ticket.date_resolution)}</span></div>`:''}
+        </div>
+        ${ticket.statut==='resolu'&&!ticket.satisfaction?`
+        <div class="dcard">
+          <div style="font-size:14px;font-weight:600;margin-bottom:10px">⭐ Évaluer la résolution</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${[1,2,3,4,5].map(n=>`<button class="bsm bg" onclick="rate(${ticket.id},${n})">${'⭐'.repeat(n)}</button>`).join('')}
+          </div>
+        </div>`:''}
+      </div>
+    </div>`;
+
+  const chatEl=document.getElementById(`chat-${ticket.id}`);
+  if (chatEl) chatEl.scrollTop=chatEl.scrollHeight;
+}
+
+function renderMsg(m, BASE) {
+  const isMe = m.auteur_type==='utilisateur';
+  const isAg = m.auteur_type==='agent';
+  const initials=(m.auteur_nom||'?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  let imgHtml='';
+  if (m.piece_jointe_url) {
+    const url = m.piece_jointe_url.startsWith('http') ? m.piece_jointe_url : `${BASE}${m.piece_jointe_url}`;
+    if (isImage(m.piece_jointe_url)) {
+      imgHtml=`<br><img src="${url}" class="msg-img" onclick="openLightbox('${url}')" alt="Image jointe">`;
+    } else {
+      imgHtml=`<br><a href="${url}" target="_blank" style="color:var(--blue);font-size:12px;display:inline-block;margin-top:6px">📄 Pièce jointe</a>`;
+    }
+  }
+  return `
+    <div class="msg-bubble ${isMe?'me':isAg?'agent':''}">
+      <div class="msg-av ${isMe?'user':isAg?'agent':'system'}">${initials}</div>
+      <div class="msg-content">
+        <div class="msg-name">${m.auteur_nom||'?'} ${isAg?'<span style="color:var(--purple);font-size:9px">· Agent</span>':''}</div>
+        <div class="msg-text">${m.contenu}${imgHtml}</div>
+        <div class="msg-time">${fdt(m.date_creation)}</div>
+      </div>
+    </div>`;
+}
+
+// ── ENVOYER MESSAGE (texte + image) ───────
+let attachedFile = null;
+let attachForTicket = null;
+
+function triggerAttach(ticketId) {
+  attachForTicket = ticketId;
+  document.getElementById('attach-input').click();
+}
+
+function previewAttach(input) {
+  const file = input.files[0];
+  if (!file) return;
+  attachedFile = file;
+  const preview = document.getElementById(`file-preview-${attachForTicket}`);
+  if (preview) {
+    preview.style.display='block';
+    preview.textContent=`📎 ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+  }
+}
+
+async function sendMsg(id) {
+  const input  = document.getElementById(`chat-input-${id}`);
+  const btn    = document.getElementById(`send-btn-${id}`);
+  const contenu = input?.value?.trim();
+  const hasFile = attachedFile && attachForTicket===id;
+
+  if (!contenu && !hasFile) return toast('Écrivez un message ou joignez un fichier','err');
+
+  input.disabled=true; btn.disabled=true; btn.textContent='...';
+
+  try {
+    const fd = new FormData();
+    fd.append('contenu', contenu||'(fichier joint)');
+    fd.append('interne', 'false');
+    if (hasFile) fd.append('piece_jointe', attachedFile);
+
+    const r = await fetch(`${API}/tickets/${id}/commentaires`,{
+      method:'POST',
+      headers:{Authorization:`Bearer ${token}`},
+      body: fd
+    });
+
+    if (!r.ok) {
+      const e=await r.json();
+      throw new Error(e.error||'Erreur');
+    }
+
+    input.value='';
+    attachedFile=null;
+    const preview=document.getElementById(`file-preview-${id}`);
+    if (preview) { preview.style.display='none'; preview.textContent=''; }
+    document.getElementById('attach-input').value='';
+
+    toast('Message envoyé ✅','ok');
+    await fetchDetail(id);
+  } catch(e) {
+    toast(`Erreur : ${e.message}`,'err');
+  } finally {
+    if(input) input.disabled=false;
+    if(btn) { btn.disabled=false; btn.textContent='Envoyer'; }
+  }
+}
+
+// ── PAGE MESSAGES ─────────────────────────
+async function loadMessages() {
+  document.getElementById('messages-body').innerHTML=`<div class="loading"><div class="loader"></div> Chargement...</div>`;
+  try {
+    const r=await fetch(`${API}/tickets`,{headers:{Authorization:`Bearer ${token}`}});
+    if (!r.ok) throw new Error();
+    const d=await r.json();
+    const tickets=(d.tickets||[]).filter(t=>(t.nb_commentaires||0)>0);
+    if (!tickets.length) {
+      document.getElementById('messages-body').innerHTML=`<div class="empty">Aucune conversation pour le moment.<br>Soumettez un ticket et envoyez un message à l'agent.</div>`;
+      return;
+    }
+    document.getElementById('messages-body').innerHTML=`<div style="display:flex;flex-direction:column;gap:12px">
+      ${tickets.map(t=>`
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:border-color 0.2s"
+          onclick="openDetail(${t.id})"
+          onmouseenter="this.style.borderColor='var(--blue)'" onmouseleave="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="font-family:'Clash Display';font-size:13px;font-weight:700;color:var(--blue)">${t.reference}</div>
+            <span class="badge b${t.statut.replace('_','').replace('_','')}">${sLbl(t.statut)}</span>
+          </div>
+          <div style="font-weight:600;font-size:14px;margin-bottom:4px">${t.titre}</div>
+          <div style="font-size:12px;color:var(--muted)">
+            ${t.agent_nom?`Agent: ${t.agent_nom}`:'En attente d\'un agent'} · ${t.nb_commentaires} message(s)
+          </div>
+          <div style="margin-top:10px"><button class="bsm bb" style="font-size:11px">Voir la conversation →</button></div>
+        </div>`).join('')}
+    </div>`;
+  } catch { document.getElementById('messages-body').innerHTML=`<div class="empty">Impossible de charger.</div>`; }
+}
+
+// ── NOUVEAU TICKET ─────────────────────────
+function selPrio(p) {
+  selPrio_=p;
+  document.getElementById('t-prio').value=p;
+  ['urgent','normal','faible'].forEach(x=>{
+    document.getElementById(`pc-${x}`).className=`pcard${x===p?' s'+x[0]:''}`;
+  });
+}
+
+async function submitTicket() {
+  const titre=document.getElementById('t-titre').value.trim();
+  const desc=document.getElementById('t-desc').value.trim();
+  const cat=document.getElementById('t-cat').value;
+  const tags=document.getElementById('t-tags').value;
+  if (!titre||!desc||!cat) return toast('Titre, description et catégorie sont obligatoires','err');
+
+  const fd=new FormData();
+  fd.append('titre',titre); fd.append('description',desc);
+  fd.append('categorie',cat); fd.append('priorite',selPrio_);
+  fd.append('tags',tags);
+  const file=document.getElementById('t-file').files[0];
+  if (file) fd.append('piece_jointe',file);
+
+  document.getElementById('btn-submit').disabled=true;
+  document.getElementById('btn-submit').textContent='Envoi...';
+
+  try {
+    const r=await fetch(`${API}/tickets`,{method:'POST',headers:{Authorization:`Bearer ${token}`},body:fd});
+    const d=await r.json();
+    if (!r.ok) return toast(d.error||'Erreur','err');
+    toast(`✅ Ticket ${d.ticket.reference} créé ! Email de confirmation envoyé.`,'ok');
+    ['t-titre','t-desc','t-tags'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('t-cat').value='';
+    document.getElementById('t-file').value='';
+    selPrio('normal');
+    showPage('tickets');
+  } catch { toast('Erreur serveur','err'); }
+  finally {
+    document.getElementById('btn-submit').disabled=false;
+    document.getElementById('btn-submit').textContent='🚀 Soumettre le ticket';
+  }
+}
+
+async function rate(id, note) {
+  try { await fetch(`${API}/tickets/${id}/satisfaction`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({note})}); } catch {}
+  toast(`Merci pour votre évaluation ${'⭐'.repeat(note)}`,'ok');
+  await fetchDetail(id);
+}
+
+// ── LIGHTBOX ──────────────────────────────
+function openLightbox(url) {
+  document.getElementById('lightbox-img').src=url;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+// ── HELPERS ───────────────────────────────
+const sLbl=s=>({ouvert:'Ouvert',en_cours:'En cours',resolu:'Résolu',ferme:'Fermé',en_attente:'En attente'}[s]||s);
+const cLbl=c=>({materiel:'🖥️ Matériel',logiciel:'💾 Logiciel',reseau:'🌐 Réseau',acces:'🔑 Accès',autre:'❓ Autre'}[c]||c);
+const fd=d=>new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});
+const fdt=d=>new Date(d).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+const isImage=url=>url&&/\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+
+function toast(msg, type='ok') {
+  const c=document.getElementById('toasts');
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span>${type==='ok'?'✅':'❌'}</span><span>${msg}</span>`;
+  c.appendChild(el);
+  setTimeout(()=>el.remove(),4500);
+}
+
+// ── AUTO LOGIN ────────────────────────────
+const st=localStorage.getItem('sd_token');
+const su=localStorage.getItem('sd_user');
+if (st&&su) { token=st; user=JSON.parse(su); saveAndInit(token,user); }
+</script>
+</body>
+</html>

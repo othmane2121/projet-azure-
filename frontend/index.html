@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SupportMH — Support Technique d'Excellence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --blue:     #52658c;
+      --blue2:    #1240a8;
+      --blue-lt:  #eff4ff;
+      --blue-mid: #3b72f0;
+      --txt:      #0f172a;
+      --muted:    #64748b;
+      --border:   #e2e8f0;
+      --bg:       #ffffff;
+      --bg2:      #f8fafc;
+      --green:    #10b981;
+      --red:      #ef4444;
+      --amber:    #f59e0b;
+      --navy:     #0f172a;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--txt); overflow-x: hidden; }
+
+    /* ════════════════════════════════════════
+       NAV
+    ════════════════════════════════════════ */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+      height: 72px; padding: 0 72px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.0);
+      transition: background .4s, box-shadow .4s, backdrop-filter .4s;
+    }
+    nav.scrolled {
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 1px 0 var(--border), 0 4px 24px rgba(0,0,0,.07);
+    }
+
+    .logo {
+      font-family: 'Sora', sans-serif;
+      font-size: 22px; font-weight: 800; color: #fff;
+      letter-spacing: -.5px; text-decoration: none;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: var(--blue); display: flex; align-items: center;
+      justify-content: center; font-size: 16px;
+    }
+    nav.scrolled .logo { color: var(--navy); }
+
+    .nlinks { display: flex; gap: 40px; }
+    .nlinks a {
+      font-size: 14px; font-weight: 500;
+      color: rgba(255,255,255,.8);
+      text-decoration: none; transition: color .2s;
+      position: relative;
+    }
+    .nlinks a::after {
+      content: ''; position: absolute; bottom: -4px; left: 0; right: 0;
+      height: 2px; background: #fff; border-radius: 2px;
+      transform: scaleX(0); transition: transform .25s;
+    }
+    .nlinks a:hover { color: #fff; }
+    .nlinks a:hover::after { transform: scaleX(1); }
+    nav.scrolled .nlinks a { color: var(--muted); }
+    nav.scrolled .nlinks a::after { background: var(--blue); }
+    nav.scrolled .nlinks a:hover { color: var(--blue); }
+
+    .nright { display: flex; gap: 10px; align-items: center; }
+
+    .nav-login {
+      padding: 8px 20px; border-radius: 7px;
+      font-size: 13px; font-weight: 600;
+      color: rgba(255,255,255,.9); text-decoration: none;
+      border: 1.5px solid rgba(255,255,255,.3);
+      transition: all .2s;
+    }
+    .nav-login:hover { border-color: rgba(255,255,255,.8); color: #fff; background: rgba(255,255,255,.1); }
+    nav.scrolled .nav-login { color: var(--txt); border-color: var(--border); }
+    nav.scrolled .nav-login:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }
+
+    .nav-cta {
+      padding: 9px 22px; border-radius: 7px;
+      font-size: 13px; font-weight: 700; color: var(--navy);
+      background: #fff; text-decoration: none;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15);
+      transition: all .2s;
+    }
+    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+    nav.scrolled .nav-cta { background: var(--blue); color: #fff; box-shadow: 0 2px 10px rgba(26,86,219,.3); }
+    nav.scrolled .nav-cta:hover { background: var(--blue2); box-shadow: 0 6px 20px rgba(26,86,219,.4); }
+
+    /* ════════════════════════════════════════
+       HERO — full-screen background image
+    ════════════════════════════════════════ */
+    .hero {
+      min-height: 100vh;
+      position: relative;
+      display: flex; align-items: center;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+    }
+    .hero-bg img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center 20%;
+    }
+    /* multi-layer gradient: left dark for text, subtle blue tint */
+    .hero-bg::after {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(105deg,
+          rgba(10,15,40,.82) 0%,
+          rgba(10,15,40,.65) 40%,
+          rgba(10,15,40,.28) 70%,
+          rgba(10,15,40,.10) 100%
+        ),
+        linear-gradient(180deg, rgba(26,86,219,.12) 0%, transparent 60%);
+    }
+
+    /* thin blue top border accent */
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; z-index: 10;
+      background: linear-gradient(90deg, var(--blue), var(--blue-mid), transparent);
+    }
+
+    .hleft {
+      position: relative; z-index: 2;
+      padding: 120px 72px 100px;
+      max-width: 720px;
+    }
+
+    /* top eyebrow label */
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      margin-bottom: 28px;
+      font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+      color: rgba(255,255,255,.65);
+    }
+    .eyebrow-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+      box-shadow: 0 0 0 3px rgba(16,185,129,.25);
+      animation: pulse 2.2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.25)} 50%{box-shadow:0 0 0 7px rgba(16,185,129,.08)} }
+    .eyebrow-sep { width: 24px; height: 1px; background: rgba(255,255,255,.3); }
+
+    h1 {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(44px, 5.2vw, 74px);
+      font-weight: 800; line-height: 1.04; letter-spacing: -2px;
+      color: #fff; margin-bottom: 24px;
+    }
+    h1 .hl {
+      background: linear-gradient(90deg, #60a5fa, #a5b4fc);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    .hsub {
+      font-size: 17px; font-weight: 400; line-height: 1.78;
+      color: rgba(255,255,255,.72); max-width: 500px; margin-bottom: 44px;
+    }
+
+    .hbtns { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 60px; }
+
+    .btn-hero-primary {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 15px 32px; border-radius: 8px;
+      font-size: 15px; font-weight: 700; color: #fff;
+      background: var(--blue);
+      box-shadow: 0 4px 20px rgba(26,86,219,.45);
+      text-decoration: none; transition: all .25s;
+    }
+    .btn-hero-primary:hover { background: var(--blue2); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(26,86,219,.55); }
+    .btn-hero-primary svg { transition: transform .25s; }
+    .btn-hero-primary:hover svg { transform: translateX(4px); }
+
+    .btn-hero-ghost {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 15px 32px; border-radius: 8px;
+      font-size: 15px; font-weight: 600; color: #fff;
+      background: rgba(255,255,255,.1);
+      border: 1.5px solid rgba(255,255,255,.35);
+      backdrop-filter: blur(10px);
+      text-decoration: none; transition: all .25s;
+    }
+    .btn-hero-ghost:hover { border-color: rgba(255,255,255,.7); background: rgba(255,255,255,.18); transform: translateY(-2px); }
+
+    /* stats strip */
+    .hstats {
+      display: flex; gap: 0;
+      padding-top: 36px; border-top: 1px solid rgba(255,255,255,.15);
+    }
+    .hs { flex: 1; padding-right: 36px; border-right: 1px solid rgba(255,255,255,.15); }
+    .hs:last-child { border-right: none; padding-right: 0; padding-left: 36px; }
+    .hs:not(:first-child):not(:last-child) { padding: 0 36px; }
+    .hsn {
+      font-family: 'Sora', sans-serif;
+      font-size: 42px; font-weight: 800; line-height: 1; color: #fff; margin-bottom: 5px;
+    }
+    .hsn sup { font-size: 20px; vertical-align: super; color: #93c5fd; }
+    .hsl { font-size: 12px; font-weight: 500; color: rgba(255,255,255,.55); letter-spacing: .02em; }
+
+    /* bottom-right floating card */
+    .hero-card {
+      position: absolute; bottom: 52px; right: 72px; z-index: 3;
+      background: rgba(255,255,255,.97); border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.22);
+      padding: 22px 26px; width: 320px;
+      border: 1px solid rgba(255,255,255,.6);
+      animation: float 5s ease-in-out infinite;
+    }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    .hcard-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .hcard-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+    .hcard-live {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: .06em;
+    }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s ease-in-out infinite; }
+    .hcard-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px;
+    }
+    .hcard-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .hcard-ico { font-size: 16px; flex-shrink: 0; }
+    .hcard-name { flex: 1; font-weight: 600; color: var(--txt); font-size: 13px; }
+    .hcard-tag {
+      padding: 3px 10px; border-radius: 5px;
+      font-size: 10px; font-weight: 800; letter-spacing: .04em;
+    }
+    .t-urgent { background: #fef2f2; color: var(--red); }
+    .t-cours  { background: #eff6ff; color: var(--blue); }
+    .t-attente{ background: #fffbeb; color: var(--amber); }
+    .t-resolu { background: #ecfdf5; color: var(--green); }
+
+    /* ════════════════════════════════════════
+       RIBBON
+    ════════════════════════════════════════ */
+    .ribbon {
+      background: var(--navy); overflow: hidden; padding: 14px 0;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .rtrack {
+      display: flex; gap: 60px; width: max-content;
+      animation: marquee 32s linear infinite;
+    }
+    @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+    .ritem {
+      display: flex; align-items: center; gap: 14px; white-space: nowrap;
+      font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+      color: rgba(255,255,255,.5);
+    }
+    .rdot { width: 4px; height: 4px; border-radius: 50%; background: var(--blue-mid); }
+
+    /* ════════════════════════════════════════
+       SECTION COMMONS
+    ════════════════════════════════════════ */
+    .section { padding: 110px 72px; }
+    .section.alt { background: var(--bg2); }
+
+    .sec-label {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--blue); margin-bottom: 18px;
+    }
+    .sec-label-bar { width: 28px; height: 3px; background: var(--blue); border-radius: 3px; }
+
+    .sec-title {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(30px, 3.2vw, 48px); font-weight: 800;
+      line-height: 1.1; letter-spacing: -1.2px; color: var(--navy); margin-bottom: 16px;
+    }
+    .sec-title .hl { color: var(--blue); }
+    .sec-sub { font-size: 16px; font-weight: 400; color: var(--muted); line-height: 1.8; max-width: 540px; }
+
+    /* ════════════════════════════════════════
+       FEATURES BENTO
+    ════════════════════════════════════════ */
+    .bento {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 64px;
+    }
+    .bc {
+      background: #fff; border: 1px solid var(--border); border-radius: 14px;
+      padding: 34px; transition: all .3s cubic-bezier(.16,1,.3,1);
+      position: relative; overflow: hidden;
+    }
+    .bc::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--blue), var(--blue-mid));
+      transform: scaleX(0); transform-origin: left; transition: transform .3s;
+    }
+    .bc:hover { border-color: rgba(26,86,219,.25); transform: translateY(-5px); box-shadow: 0 20px 60px rgba(26,86,219,.1); }
+    .bc:hover::before { transform: scaleX(1); }
+    .bc.wide { grid-column: span 2; }
+
+    .bc-icon {
+      width: 52px; height: 52px; border-radius: 12px;
+      background: var(--blue-lt); display: flex; align-items: center;
+      justify-content: center; font-size: 24px; margin-bottom: 20px;
+      transition: background .3s;
+    }
+    .bc:hover .bc-icon { background: var(--blue); }
+    .bc-title { font-size: 17px; font-weight: 700; margin-bottom: 9px; color: var(--navy); }
+    .bc-desc { font-size: 14px; color: var(--muted); line-height: 1.75; }
+
+    /* mini dashboard */
+    .dash {
+      margin-top: 22px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+    }
+    .dh {
+      display: flex; align-items: center; gap: 6px;
+      padding: 11px 16px; border-bottom: 1px solid var(--border);
+      background: #f8fafc;
+    }
+    .dd { width: 9px; height: 9px; border-radius: 50%; }
+    .dd-r{background:#ff5f57}.dd-y{background:#febc2e}.dd-g{background:#28c840}
+    .dtitle { font-size: 11px; color: var(--muted); font-weight: 600; margin: 0 auto; letter-spacing: .03em; }
+    .dr {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; border-bottom: 1px solid #f1f5f9;
+      font-size: 12px; transition: background .15s;
+    }
+    .dr:hover { background: #f8fafc; }
+    .dr:last-child { border-bottom: none; }
+    .dri { font-size: 15px; }
+    .drn { flex: 1; font-weight: 600; color: var(--txt); }
+    .drs { color: var(--muted); font-size: 11px; }
+    .drb { padding: 3px 10px; border-radius: 5px; font-size: 10px; font-weight: 800; }
+    .dbu { background: #fef2f2; color: var(--red); }
+    .dbo { background: #eff6ff; color: var(--blue); }
+    .dbr { background: #ecfdf5; color: var(--green); }
+    .dbp { background: #fffbeb; color: var(--amber); }
+
+    /* ════════════════════════════════════════
+       PROCESS
+    ════════════════════════════════════════ */
+    .proc-inner {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 96px;
+      align-items: center; margin-top: 68px;
+    }
+    .steps { position: relative; }
+    .step-line {
+      position: absolute; left: 19px; top: 60px; bottom: 60px; width: 2px;
+      background: linear-gradient(to bottom, var(--blue), rgba(26,86,219,.08));
+    }
+    .ps { display: flex; gap: 24px; margin-bottom: 38px; position: relative; }
+    .ps:last-child { margin-bottom: 0; }
+    .psn {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      background: var(--blue-lt); color: var(--blue); border: 2px solid var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 14px; position: relative; z-index: 1;
+      transition: all .3s;
+    }
+    .ps:hover .psn { background: var(--blue); color: #fff; box-shadow: 0 4px 16px rgba(26,86,219,.4); }
+    .psb { padding-top: 8px; }
+    .pst { font-size: 17px; font-weight: 700; margin-bottom: 6px; color: var(--navy); transition: color .3s; }
+    .ps:hover .pst { color: var(--blue); }
+    .psd { font-size: 14px; color: var(--muted); line-height: 1.75; }
+
+    .pvis {
+      border-radius: 18px; overflow: hidden; height: 520px;
+      position: relative; box-shadow: 0 32px 80px rgba(0,0,0,.18);
+    }
+    .pvis img { width: 100%; height: 100%; object-fit: cover; }
+    .pvis-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(160deg, rgba(26,86,219,.18) 0%, transparent 55%);
+    }
+    .pbadge {
+      position: absolute; bottom: 28px; left: 28px;
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.16); padding: 18px 24px;
+    }
+    .pbv {
+      font-family: 'Sora', sans-serif;
+      font-size: 38px; font-weight: 800; color: var(--blue); line-height: 1;
+    }
+    .pbl { font-size: 12px; font-weight: 500; color: var(--muted); margin-top: 5px; }
+    .ptag {
+      position: absolute; top: 24px; right: 24px;
+      background: #fff; border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.12);
+      padding: 8px 16px; font-size: 11px; font-weight: 700;
+      color: var(--green); display: flex; align-items: center; gap: 8px;
+    }
+    .ptag .live-dot { background: var(--green); }
+
+    /* ════════════════════════════════════════
+       TESTIMONIALS
+    ════════════════════════════════════════ */
+    .tgrid {
+      display: grid; grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 22px; margin-top: 68px; align-items: start;
+    }
+    .tc {
+      background: #fff; border: 1px solid var(--border); border-radius: 14px;
+      padding: 34px; transition: all .3s;
+    }
+    .tc:hover { border-color: rgba(26,86,219,.3); transform: translateY(-5px); box-shadow: 0 20px 60px rgba(26,86,219,.09); }
+    .tc.feat {
+      border-color: var(--blue);
+      box-shadow: 0 8px 32px rgba(26,86,219,.12);
+      background: linear-gradient(160deg, #f0f5ff 0%, #fff 100%);
+    }
+    .tstars { display: flex; gap: 3px; margin-bottom: 18px; }
+    .star { font-size: 16px; color: var(--amber); }
+    .star.e { color: #e2e8f0; }
+    .tq {
+      font-size: 15px; font-weight: 400; line-height: 1.75;
+      color: #334155; margin-bottom: 26px; font-style: italic;
+    }
+    .tau { display: flex; align-items: center; gap: 13px; }
+    .tav {
+      width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 15px;
+    }
+    .tan { font-size: 14px; font-weight: 700; color: var(--navy); }
+    .tar { font-size: 12px; font-weight: 400; color: var(--muted); margin-top: 2px; }
+
+    /* ════════════════════════════════════════
+       CTA
+    ════════════════════════════════════════ */
+    .cta-section {
+      position: relative; overflow: hidden;
+      background: var(--navy);
+      padding: 120px 72px; text-align: center;
+    }
+    /* subtle radial glow */
+    .cta-section::before {
+      content: ''; position: absolute;
+      top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 900px; height: 500px; border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(26,86,219,.35) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    /* grid lines */
+    .cta-section::after {
+      content: ''; position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+      background-size: 48px 48px; pointer-events: none;
+    }
+    .cta-inner { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }
+    .cta-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(26,86,219,.35); border: 1px solid rgba(26,86,219,.5);
+      border-radius: 20px; padding: 6px 18px; margin-bottom: 28px;
+      font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+      color: #93c5fd;
+    }
+    .cta-h {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(36px, 4.5vw, 62px); font-weight: 800;
+      line-height: 1.06; letter-spacing: -1.5px;
+      color: #fff; margin-bottom: 22px;
+    }
+    .cta-h span { background: linear-gradient(90deg, #60a5fa, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .cta-p { font-size: 17px; color: rgba(255,255,255,.65); line-height: 1.78; margin-bottom: 50px; }
+    .cta-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-cta-white {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 16px 34px; border-radius: 8px;
+      font-size: 15px; font-weight: 700; color: var(--navy);
+      background: #fff; text-decoration: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,.25);
+      transition: all .25s;
+    }
+    .btn-cta-white:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(0,0,0,.32); }
+    .btn-cta-outline {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 16px 34px; border-radius: 8px;
+      font-size: 15px; font-weight: 600; color: rgba(255,255,255,.85);
+      background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.25);
+      text-decoration: none; backdrop-filter: blur(8px); transition: all .25s;
+    }
+    .btn-cta-outline:hover { border-color: rgba(255,255,255,.6); color: #fff; background: rgba(255,255,255,.12); transform: translateY(-2px); }
+
+    /* ════════════════════════════════════════
+       FOOTER
+    ════════════════════════════════════════ */
+    footer {
+      background: #080e1e; padding: 28px 72px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,.05);
+    }
+    .flogo {
+      font-family: 'Sora', sans-serif;
+      font-size: 18px; font-weight: 800; color: #fff;
+      display: flex; align-items: center; gap: 9px;
+    }
+    .flogo-icon {
+      width: 28px; height: 28px; border-radius: 6px;
+      background: var(--blue); display: flex; align-items: center;
+      justify-content: center; font-size: 13px;
+    }
+    .flinks { display: flex; gap: 30px; }
+    .flinks a {
+      font-size: 12px; font-weight: 500; color: rgba(255,255,255,.35);
+      text-decoration: none; transition: color .2s;
+    }
+    .flinks a:hover { color: rgba(255,255,255,.8); }
+    .fcopy { font-size: 11px; color: rgba(255,255,255,.25); }
+
+    /* ════════════════════════════════════════
+       SCROLL REVEAL
+    ════════════════════════════════════════ */
+    .rev {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1);
+    }
+    .rev.on { opacity: 1; transform: translateY(0); }
+    .d1{transition-delay:.1s}.d2{transition-delay:.22s}.d3{transition-delay:.34s}
+
+    /* ════════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════════ */
+    @media(max-width:1100px){
+      nav, nav.scrolled { padding: 0 28px; }
+      .nlinks { display: none; }
+      .hleft { padding: 100px 28px 80px; }
+      .hero-card { display: none; }
+      .section { padding: 80px 28px; }
+      .bento { grid-template-columns: 1fr 1fr; }
+      .bc.wide { grid-column: span 2; }
+      .proc-inner { grid-template-columns: 1fr; gap: 56px; }
+      .tgrid { grid-template-columns: 1fr; }
+      .cta-section { padding: 80px 28px; }
+      footer { padding: 24px 28px; flex-direction: column; gap: 18px; text-align: center; }
+      .flinks { justify-content: center; }
+    }
+    @media(max-width:640px){
+      h1 { font-size: 38px; letter-spacing: -1px; }
+      .hstats { flex-direction: column; gap: 22px; }
+      .hs { border-right: none; border-bottom: 1px solid rgba(255,255,255,.12); padding: 0 0 22px; }
+      .hs:last-child { border-bottom: none; padding: 0; }
+      .bento { grid-template-columns: 1fr; }
+      .bc.wide { grid-column: span 1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav id="nav">
+  <a href="#" class="logo">
+    
+    SupportMH
+  </a>
+  <div class="nlinks">
+    <a href="#features">Fonctionnalités</a>
+    <a href="#process">Processus</a>
+    <a href="#testi">Témoignages</a>
+  </div>
+  <div class="nright">
+    <a href="user-portal/index.html" class="nav-login">Se connecter</a>
+    <a href="user-portal/index.html" class="nav-cta">Commencer →</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-bg">
+    <img src="https://www.telecominc.com/wp-content/uploads/shutterstock_666256996-scaled.jpg" alt="Équipe support SupportMH">
+  </div>
+
+  <div class="hleft">
+    <div class="eyebrow">
+       ✦  Disponible 24/7
+    </div>
+    <h1>
+      Un support technique<br>
+      <span class="hl">au-dessus du reste</span>
+    </h1>
+    <div class="eyebrow-sep"></div>
+    <p class="hsub">
+      Soumettez vos demandes, suivez leur avancement en temps réel et communiquez directement avec nos agents spécialisés. Résolution garantie.
+    </p>
+
+    <div class="hbtns">
+      <a href="user-portal/index.html" class="btn-hero-primary">
+        Contacter le support
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="#process" class="btn-hero-ghost">Comment ça marche</a>
+    </div>
+
+    <div class="hstats">
+      <div class="hs">
+        <div class="hsn"><span class="cnt" data-t="98">0</span><sup>%</sup></div>
+        <div class="hsl">Taux de satisfaction</div>
+      </div>
+      <div class="hs">
+        <div class="hsn">2<sup>h</sup></div>
+        <div class="hsl">Réponse moyenne</div>
+      </div>
+      <div class="hs">
+        <div class="hsn"><span class="cnt" data-t="500">0</span><sup>+</sup></div>
+        <div class="hsl">Tickets / mois</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- floating card -->
+  
+</section>
+
+<!-- ══ RIBBON ══ -->
+<div class="ribbon">
+  <div class="rtrack">
+    <span class="ritem"><span class="rdot"></span>Résolution rapide garantie</span>
+    <span class="ritem"><span class="rdot"></span>Agents certifiés</span>
+    <span class="ritem"><span class="rdot"></span>Suivi temps réel</span>
+    <span class="ritem"><span class="rdot"></span>Messagerie directe</span>
+    <span class="ritem"><span class="rdot"></span>Notifications automatiques</span>
+    <span class="ritem"><span class="rdot"></span>Priorités intelligentes</span>
+    <span class="ritem"><span class="rdot"></span>Support 24/7</span>
+    <span class="ritem"><span class="rdot"></span>Interface intuitive</span>
+    <span class="ritem"><span class="rdot"></span>Résolution rapide garantie</span>
+    <span class="ritem"><span class="rdot"></span>Agents certifiés</span>
+    <span class="ritem"><span class="rdot"></span>Suivi temps réel</span>
+    <span class="ritem"><span class="rdot"></span>Messagerie directe</span>
+    <span class="ritem"><span class="rdot"></span>Notifications automatiques</span>
+    <span class="ritem"><span class="rdot"></span>Priorités intelligentes</span>
+    <span class="ritem"><span class="rdot"></span>Support 24/7</span>
+    <span class="ritem"><span class="rdot"></span>Interface intuitive</span>
+  </div>
+</div>
+
+<!-- ══ FEATURES ══ -->
+<section class="section alt" id="features">
+  <div class="rev">
+    <div class="sec-label"><div class="sec-label-bar"></div>Fonctionnalités</div>
+    <h2 class="sec-title">Tout ce dont vous <span class="hl">avez besoin</span></h2>
+    <p class="sec-sub">Une plateforme complète pour gérer vos demandes de support technique de A à Z, avec efficacité et simplicité.</p>
+  </div>
+  <div class="bento rev d1">
+    <div class="bc wide">
+      <div class="bc-icon">🖥️</div>
+      <div class="bc-title">Tableau de bord en temps réel</div>
+      <p class="bc-desc">Suivez tous vos tickets actifs, leur statut et les échanges depuis une interface unifiée et intuitive.</p>
+      <div class="dash">
+        <div class="dh">
+          <div class="dd dd-r"></div><div class="dd dd-y"></div><div class="dd dd-g"></div>
+          <div class="dtitle">Tickets actifs — vue agent</div>
+        </div>
+        <div class="dr"><span class="dri">💻</span><span class="drn">Accès VPN impossible</span><span class="drs">#TK-2941 · 12 min</span><span class="drb dbu">Urgent</span></div>
+        <div class="dr"><span class="dri">🖨️</span><span class="drn">Imprimante hors ligne</span><span class="drs">#TK-2940 · 1h</span><span class="drb dbo">En cours</span></div>
+        <div class="dr"><span class="dri">📧</span><span class="drn">Messagerie Outlook</span><span class="drs">#TK-2938 · 3h</span><span class="drb dbp">En attente</span></div>
+        <div class="dr"><span class="dri">🔐</span><span class="drn">Réinitialisation mot de passe</span><span class="drs">#TK-2935 · 5h</span><span class="drb dbr">Résolu</span></div>
+      </div>
+    </div>
+    <div class="bc">
+      <div class="bc-icon">💬</div>
+      <div class="bc-title">Messagerie directe</div>
+      <p class="bc-desc">Communiquez directement avec l'agent assigné. Historique complet et échanges fluides conservés.</p>
+    </div>
+    <div class="bc">
+      <div class="bc-icon">⚡</div>
+      <div class="bc-title">Priorités intelligentes</div>
+      <p class="bc-desc">Urgent traité en moins de 4h. Classification automatique selon la criticité de votre demande.</p>
+    </div>
+    <div class="bc">
+      <div class="bc-icon">📧</div>
+      <div class="bc-title">Notifications email</div>
+      <p class="bc-desc">Confirmation automatique à chaque création et mise à jour de statut de vos tickets.</p>
+    </div>
+    <div class="bc">
+      <div class="bc-icon">🤖</div>
+      <div class="bc-title">Assignation automatique</div>
+      <p class="bc-desc">Routage intelligent selon disponibilité et spécialité de l'agent le plus adapté.</p>
+    </div>
+    <div class="bc">
+      <div class="bc-icon">🔒</div>
+      <div class="bc-title">Sécurité maximale</div>
+      <p class="bc-desc">Vos données sont chiffrées et protégées à chaque étape du processus de support.</p>
+    </div>
+    <div class="bc">
+      <div class="bc-icon">🚨 </div>
+      <div class="bc-title">Gestion des incidents majeurs</div>
+      <p class="bc-desc">Détectez, priorisez et coordonnez rapidement la résolution des incidents critiques afin de minimiser leur impact sur l'activité.</p>
+    </div>
+    <div class="bc">
+      <div class="bc-icon">🎯</div>
+      <div class="bc-title"> Gestion des SLA</div>
+      <p class="bc-desc">Garantissez le respect des délais de prise en charge et de résolution grâce à des objectifs de service personnalisables et des alertes automatiques.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PROCESS ══ -->
+<section class="section" id="process">
+  <div class="rev">
+    <div class="sec-label"><div class="sec-label-bar"></div>Processus</div>
+    <h2 class="sec-title">Comment ça <span class="hl">marche ?</span></h2>
+  </div>
+  <div class="proc-inner">
+    <div class="steps rev d1">
+      <div class="step-line"></div>
+      <div class="ps">
+        <div class="psn">1</div>
+        <div class="psb">
+          <div class="pst">Créez votre compte</div>
+          <p class="psd">Inscrivez-vous en 30 secondes avec votre email professionnel. Aucune configuration requise, accès immédiat.</p>
+        </div>
+      </div>
+      <div class="ps">
+        <div class="psn">2</div>
+        <div class="psb">
+          <div class="pst">Soumettez votre ticket</div>
+          <p class="psd">Décrivez votre problème, choisissez la catégorie et la priorité. Ajoutez une pièce jointe si besoin.</p>
+        </div>
+      </div>
+      <div class="ps">
+        <div class="psn">3</div>
+        <div class="psb">
+          <div class="pst">Un agent vous est assigné</div>
+          <p class="psd">Un technicien spécialisé prend en charge votre demande. Email de confirmation immédiat.</p>
+        </div>
+      </div>
+      <div class="ps">
+        <div class="psn">4</div>
+        <div class="psb">
+          <div class="pst">Problème résolu</div>
+          <p class="psd">Suivez les échanges en temps réel et évaluez la qualité du service une fois le ticket clôturé.</p>
+        </div>
+      </div>
+    </div>
+    <div class="pvis rev d2">
+      <img src="https://imageio.forbes.com/specials-images/imageserve/67913b4f541319d1ba63a8a6/0x0.jpg?format=jpg&height=900&width=1600&fit=bounds" alt="Support technique">
+      <div class="pvis-overlay"></div>
+      <div class="pbadge">
+        <div class="pbv">98%</div>
+        <div class="pbl">Taux de satisfaction client</div>
+      </div>
+      <div class="ptag"><div class="live-dot"></div>Système opérationnel</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TESTIMONIALS ══ -->
+<section class="section alt" id="testi">
+  <div class="rev">
+    <div class="sec-label"><div class="sec-label-bar"></div>Témoignages</div>
+    <h2 class="sec-title">Ils nous font <span class="hl">confiance</span></h2>
+  </div>
+  <div class="tgrid rev d1">
+    <div class="tc feat">
+      <div class="tstars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+      <p class="tq">"Mon problème de connexion VPN a été résolu en moins de 2 heures. L'agent était très professionnel, le suivi par email parfait et le résultat impeccable. Je recommande sans réserve."</p>
+      <div class="tau">
+        <div class="tav">JL</div>
+        <div><div class="tan">Jean Leroy</div><div class="tar">Responsable Comptabilité</div></div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="tstars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+      <p class="tq">"Interface intuitive, suivi en temps réel, équipe réactive. Je recommande vivement ce portail à toute mon équipe sans hésitation."</p>
+      <div class="tau">
+        <div class="tav">CM</div>
+        <div><div class="tan">Claire Moreau</div><div class="tar">Directrice RH</div></div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="tstars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star e">★</span></div>
+      <p class="tq">"La messagerie directe avec l'agent est une vraie plus-value. On explique clairement et on obtient des réponses précises rapidement."</p>
+      <div class="tau">
+        <div class="tav">LS</div>
+        <div><div class="tan">Luc Simon</div><div class="tar">Chef de projet Marketing</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA ══ -->
+<section class="cta-section">
+  <div class="cta-inner rev">
+    <div class="cta-pill">
+      <div class="live-dot"></div>
+      Prêt à commencer ?
+    </div>
+    <h2 class="cta-h">Résolvons vos problèmes<br><span>techniques ensemble</span></h2>
+    <p class="cta-p">Rejoignez des centaines d'utilisateurs qui font confiance à SupportMH pour leur support technique au quotidien.</p>
+    <div class="cta-btns">
+      <a href="user-portal/index.html" class="btn-cta-white">
+        Créer mon compte gratuit
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="admin-portal/index.html" class="btn-cta-outline">.</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="flogo">
+    <div class="flogo-icon">🎧</div>
+    SupportMH
+  </div>
+  <div class="flinks">
+    <a href="#">Confidentialité</a>
+    <a href="#">Conditions</a>
+    <a href="#">Contact</a>
+  </div>
+  <div class="fcopy">© 2024 SupportMH — Tous droits réservés</div>
+</footer>
+
+<script>
+(()=>{
+  /* NAV on scroll */
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 60), {passive:true});
+
+  /* Scroll reveal */
+  const obs = new IntersectionObserver(e => e.forEach(e => e.isIntersecting && e.target.classList.add('on')), {threshold:.1});
+  document.querySelectorAll('.rev').forEach(el => obs.observe(el));
+
+  /* Count-up */
+  function cu(el, t, dur=2000){
+    let s = null;
+    (function step(ts){
+      if(!s) s = ts;
+      const p = Math.min((ts-s)/dur, 1), ease = 1 - Math.pow(1-p, 4);
+      el.textContent = Math.floor(ease*t);
+      p < 1 ? requestAnimationFrame(step) : el.textContent = t;
+    })(performance.now());
+  }
+  const co = new IntersectionObserver(e => e.forEach(e => {
+    if(e.isIntersecting){ cu(e.target, +e.target.dataset.t); co.unobserve(e.target); }
+  }), {threshold:.6});
+  document.querySelectorAll('.cnt').forEach(el => co.observe(el));
+})();
+</script>
+</body>
+</html>

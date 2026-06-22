@@ -1,0 +1,11 @@
+﻿{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "DB_SERVER": "support-tickets-sql.database.windows.net",
+    "DB_NAME": "SupportTicketsDB",
+    "DB_USER": "sqladmin",
+    "DB_PASSWORD": "VotreMotDePasseSQL123!"
+  }
+}

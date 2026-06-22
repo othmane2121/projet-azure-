@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SupportDesk — Portail Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;600;700&family=Satoshi:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#03060e;--surface:#07101c;--surface2:#0b1726;--border:#142030;
+      --blue:#486471;--green:#10b981;--yellow:#f59e0b;--red:#ef4444;
+      --purple:#8b5cf6;--text:#f0f6ff;--muted:#7ca3c4;--dim:#3d5a76;
+    }
+    *{scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+    body{font-family:'Satoshi',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow:hidden}
+
+    /* AUTH */
+    #auth{display:flex;align-items:center;justify-content:center;min-height:100vh}
+    .acard{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:40px 36px;width:400px}
+    .acard::before{content:'';display:block;width:36px;height:3px;background:var(--blue);border-radius:2px;margin-bottom:24px}
+    .abadge{display:inline-block;background:rgba(14,165,233,0.1);border:1px solid rgba(14,165,233,0.25);color:#38bdf8;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;padding:4px 10px;border-radius:20px;margin-bottom:16px}
+    .acard h2{font-family:'Clash Display',sans-serif;font-size:26px;font-weight:700;margin-bottom:6px}
+    .acard p{color:var(--muted);font-size:13px;margin-bottom:24px}
+    .fg{margin-bottom:14px}
+    .fg label{display:block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+    .fg input,.fg select,.fg textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 13px;border-radius:9px;font-family:'Satoshi',sans-serif;font-size:13px;outline:none;transition:border-color 0.2s}
+    .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--blue)}
+    .fg textarea{resize:vertical;min-height:80px}
+    .bfull{width:100%;padding:12px;background:var(--blue);border:none;border-radius:9px;color:white;font-family:'Clash Display',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:opacity 0.2s}
+    .bfull:hover{opacity:0.88}
+
+    /* APP */
+    #app{display:none}
+    #app.show{display:block;height:100vh;overflow:hidden}
+
+    /* ─── LAYOUT PRINCIPAL ─────────────────────────────────────────── */
+    .layout{
+      display:grid;
+      grid-template-columns:235px 1fr;
+      height:100vh;
+      overflow:hidden;
+    }
+
+    /* SIDEBAR */
+    .sb{
+      background:var(--surface);
+      border-right:1px solid var(--border);
+      padding:22px 13px;
+      height:100vh;
+      overflow-y:auto;
+      display:flex;
+      flex-direction:column;
+      flex-shrink:0;
+    }
+    .sb-logo{font-family:'Clash Display',sans-serif;font-size:17px;font-weight:700;padding:0 8px;margin-bottom:5px}
+    .sb-logo span{color:var(--blue)}
+    .sb-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--blue);padding:3px 7px;background:rgba(14,165,233,0.1);border-radius:4px;margin:0 8px 24px;display:inline-block}
+    .nl{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--dim);padding:0 8px;margin:16px 0 5px}
+    .ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all 0.15s;margin-bottom:1px}
+    .ni:hover{background:var(--surface2);color:var(--text)}
+    .ni.active{background:rgba(14,165,233,0.1);color:var(--blue)}
+    .ni .ico{font-size:14px;width:18px;text-align:center}
+    .nbadge{margin-left:auto;background:var(--red);color:white;font-size:9px;font-weight:800;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;display:none}
+    .ag-card{margin-top:auto;padding:11px;background:var(--surface2);border:1px solid var(--border);border-radius:9px}
+    .ag-name{font-size:12px;font-weight:600}
+    .ag-role{font-size:10px;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+    .bout{margin-top:9px;width:100%;padding:7px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;cursor:pointer;transition:all 0.2s}
+    .bout:hover{border-color:var(--red);color:var(--red)}
+
+    /* ─── MAIN ────────────────────────────────────────────────────── */
+    .main{
+      position:relative;
+      height:100vh;
+      overflow:hidden;
+    }
+    .main-scroll{
+      height:100vh;
+      overflow-y:auto;
+      padding:26px 30px;
+    }
+    .page{display:none}
+    .page.active{display:block}
+
+    .ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+    .pt{font-family:'Clash Display',sans-serif;font-size:22px;font-weight:700}
+    .ps{font-size:12px;color:var(--muted);margin-top:2px}
+
+    /* KPI */
+    .kg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+    .kc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+    .kc.blue{border-top:2px solid var(--blue)}.kc.red{border-top:2px solid var(--red)}.kc.yellow{border-top:2px solid var(--yellow)}.kc.green{border-top:2px solid var(--green)}
+    .kv{font-family:'Clash Display',sans-serif;font-size:26px;font-weight:800}
+    .kl{font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:0.5px}
+
+    /* TABLE */
+    .tc{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    .tb{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .tt{font-family:'Clash Display',sans-serif;font-size:13px;font-weight:700;margin-right:auto}
+    .sinp{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 11px;border-radius:7px;font-size:11px;outline:none;width:160px}
+    .sinp:focus{border-color:var(--blue)}
+    .fbtn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:5px 11px;border-radius:6px;font-size:11px;cursor:pointer;transition:all 0.15s}
+    .fbtn:hover,.fbtn.active{border-color:var(--blue);color:var(--blue)}
+    table{width:100%;border-collapse:collapse}
+    th{padding:10px 15px;background:var(--surface2);font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);font-weight:600;text-align:left}
+    td{padding:12px 15px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,0.01)}
+    .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700}
+    .bu{background:rgba(239,68,68,0.15);color:#fca5a5}.bn{background:rgba(14,165,233,0.12);color:#38bdf8}.bf{background:rgba(100,116,139,0.15);color:var(--muted)}
+    .bo{background:rgba(14,165,233,0.12);color:#38bdf8}.bec{background:rgba(245,158,11,0.12);color:#fcd34d}.br{background:rgba(16,185,129,0.12);color:#6ee7b7}.bfe{background:rgba(100,116,139,0.15);color:var(--muted)}.bea{background:rgba(139,92,246,0.12);color:#c4b5fd}
+
+    /* BUTTONS */
+    .bxs{padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:all 0.15s;font-family:'Satoshi',sans-serif}
+    .bxs:disabled{opacity:0.5;cursor:not-allowed}
+    .bo_{background:transparent;border:1px solid var(--border);color:var(--muted)}.bo_:hover{border-color:var(--blue);color:var(--blue)}
+    .bbl{background:var(--blue);color:white}.bbl:hover{opacity:0.85}
+    .bpur{background:var(--purple);color:white}
+
+    /* MODAL */
+    .moverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;align-items:center;justify-content:center}
+    .moverlay.open{display:flex}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative}
+    .modal-title{font-family:'Clash Display',sans-serif;font-size:17px;font-weight:800;margin-bottom:16px}
+    .mclose{position:absolute;top:13px;right:13px;background:transparent;border:none;color:var(--muted);font-size:17px;cursor:pointer}
+    .sbtn{padding:7px 14px;border-radius:7px;cursor:pointer;font-size:11px;font-weight:700;border:1px solid;transition:all 0.15s;text-align:center}
+
+    /* ══════════════════════════════════════════════════════════════
+       MESSAGERIE ADMIN — layout 100% hauteur fixe avec calc()
+       Principe : chaque zone a une hauteur CONNUE et FIXE.
+       .msg-layout  = 100vh - sidebar-header(0, on est dans .main)
+                    = hauteur du .main elle-même
+       .msg-right   = 100% de .msg-layout
+       .msg-right-head = 56px  (fixe)
+       .reply-zone  = 74px  (fixe)
+       .chat-body   = calc(100% - 56px - 74px)  →  scroll garanti
+    ══════════════════════════════════════════════════════════════ */
+
+    /* Page messages : prend tout le .main en position absolue */
+    #page-messages{
+      display:none;
+      position:absolute;
+      inset:0;
+      flex-direction:column;
+      background:var(--bg);
+      z-index:5;
+      overflow:hidden;
+    }
+    #page-messages.active{ display:flex !important; position:absolute; inset:0; flex-direction:column; }
+
+    /* Header de la page : hauteur fixe 60px */
+    #page-messages .ph{
+      flex-shrink:0;
+      margin:0;
+      padding:12px 30px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom:1px solid var(--border);
+      min-height:56px;
+    }
+
+    /* Layout 2 colonnes : prend toute la hauteur restante */
+    .msg-layout{
+      display:grid;
+      grid-template-columns:300px 1fr;
+      flex:1;
+      min-height:0;
+      overflow:hidden;
+      background:var(--surface);
+      border-top:1px solid var(--border);
+    }
+
+    /* ── Colonne gauche ── */
+    .msg-left{
+      border-right:1px solid var(--border);
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+      overflow:hidden;
+    }
+    .msg-left-head{
+      height:48px;
+      flex-shrink:0;
+      padding:0 16px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .msg-left-title{font-family:'Clash Display',sans-serif;font-size:13px;font-weight:700}
+    .msg-list{
+      flex:1;
+      min-height:0;
+      overflow-y:auto;
+    }
+    .msg-item{padding:13px 15px;cursor:pointer;border-bottom:1px solid var(--border);transition:background 0.15s}
+    .msg-item:hover{background:var(--surface2)}
+    .msg-item.active{background:rgba(14,165,233,0.07);border-left:3px solid var(--blue)}
+    .mi-top{display:flex;justify-content:space-between;margin-bottom:4px}
+    .mi-name{font-size:12px;font-weight:700}
+    .mi-time{font-size:10px;color:var(--dim)}
+    .mi-ref{font-size:10px;color:var(--blue);margin-bottom:3px}
+    .mi-prev{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+
+    /* ── Colonne droite ── */
+    .msg-right{
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+      overflow:hidden;
+    }
+
+    /* Header du thread : 56px fixe */
+    .msg-right-head{
+      height:58px;
+      flex-shrink:0;
+      padding:0 16px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:var(--surface);
+    }
+    .msg-right-info{display:flex;align-items:center;gap:10px}
+    .mavatar{width:36px;height:36px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;flex-shrink:0}
+    .muser{font-size:13px;font-weight:700}
+    .mticket{font-size:11px;color:var(--blue);cursor:pointer}
+    .mticket:hover{text-decoration:underline}
+
+    /* Zone de bulles : prend TOUT l'espace entre header et reply-zone */
+    .chat-body{
+      flex:1;
+      min-height:0;
+      overflow-y:auto;
+      overflow-x:hidden;
+      padding:14px 18px 24px;
+      display:flex;
+      flex-direction:column;
+      gap:13px;
+    }
+    .chat-empty{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex:1;
+      color:var(--muted);
+      font-size:13px;
+      text-align:center;
+    }
+
+    /* Bulles messages */
+    .bubble{display:flex;gap:9px;align-items:flex-start}
+    .bubble.me{flex-direction:row-reverse}
+    .bav{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+    .bav.agent{background:var(--purple);color:white}
+    .bav.user{background:var(--blue);color:white}
+    .bcont{max-width:72%}
+    .bname{font-size:10px;color:var(--muted);margin-bottom:3px}
+    .bubble.me .bname{text-align:right}
+    .btext{
+      background:var(--surface2);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:9px 12px;
+      font-size:12px;
+      line-height:1.6;
+      word-break:break-word;
+    }
+    .bubble.me .btext{background:rgba(139,92,246,0.13);border-color:rgba(139,92,246,0.22)}
+    .btime{font-size:10px;color:var(--dim);margin-top:3px}
+    .bubble.me .btime{text-align:right}
+
+    /* Image dans les bulles — taille raisonnable et clic pour agrandir */
+    .bubble-img{
+      max-width:260px;
+      max-height:200px;
+      border-radius:8px;
+      margin-top:8px;
+      cursor:pointer;
+      border:1px solid var(--border);
+      display:block;
+      object-fit:cover;
+      transition:opacity 0.2s, transform 0.2s;
+    }
+    .bubble-img:hover{opacity:0.88;transform:scale(1.02)}
+
+    /* reply-zone : hauteur auto mais flex-shrink:0 → ne sera jamais écrasée */
+    .reply-zone{
+      flex-shrink:0;
+      padding:10px 14px;
+      border-top:2px solid var(--border);
+      background:var(--surface);
+    }
+    .reply-row{display:flex;gap:8px;align-items:flex-end}
+    .rinput{
+      flex:1;
+      background:var(--surface2);
+      border:1px solid var(--border);
+      color:var(--text);
+      padding:9px 13px;
+      border-radius:9px;
+      font-family:'Satoshi',sans-serif;
+      font-size:12px;
+      outline:none;
+      resize:none;
+      min-height:40px;
+      max-height:60px;
+      transition:border-color 0.2s;
+    }
+    .rinput:focus{border-color:var(--purple)}
+    .btn-attach-admin{padding:9px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;color:var(--muted);cursor:pointer;font-size:15px;transition:all 0.2s;flex-shrink:0}
+    .btn-attach-admin:hover{border-color:var(--purple);color:var(--purple)}
+    .rbtn{padding:9px 18px;background:var(--purple);border:none;border-radius:9px;color:white;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:opacity 0.2s}
+    .rbtn:disabled{opacity:0.5;cursor:not-allowed}
+    .rbtn:hover:not(:disabled){opacity:0.85}
+    .reply-preview{font-size:11px;color:var(--muted);margin-top:7px;padding:6px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);display:none;align-items:center;gap:8px}
+    .reply-preview-close{cursor:pointer;color:var(--red);font-size:13px;margin-left:auto}
+
+    /* Lightbox */
+    .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out;flex-direction:column;gap:12px}
+    .lightbox.open{display:flex}
+    .lightbox img{max-width:90vw;max-height:85vh;border-radius:10px;box-shadow:0 24px 80px rgba(0,0,0,0.8)}
+    .lightbox-hint{color:var(--muted);font-size:11px}
+
+    /* TOAST */
+    .toasts{position:fixed;bottom:18px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:7px}
+    .toast{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:12px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:si 0.3s ease}
+    .toast.ok{border-left:3px solid var(--green)}.toast.err{border-left:3px solid var(--red)}
+    @keyframes si{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+    .loader{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading{display:flex;align-items:center;justify-content:center;padding:32px;gap:10px;color:var(--muted);font-size:12px}
+    .empty{text-align:center;padding:36px;color:var(--muted);font-size:12px}
+    select option{background:var(--surface2)}
+
+    /* USER / AGENT CARDS */
+    .ucard{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);transition:background 0.15s}
+    .ucard:hover{background:rgba(255,255,255,0.01)}
+    .ucard:last-child{border-bottom:none}
+    .uavatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0}
+    .uinfo{flex:1;min-width:0}
+    .uname{font-size:13px;font-weight:600}
+    .uemail{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .umeta{font-size:10px;color:var(--dim);margin-top:3px}
+    .uactions{display:flex;gap:6px;flex-shrink:0}
+    .bdanger{background:transparent;border:1px solid rgba(239,68,68,0.4);color:var(--red);padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s}
+    .bdanger:hover{background:rgba(239,68,68,0.1)}
+    .bedit{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s}
+    .bedit:hover{border-color:var(--blue);color:var(--blue)}
+    .stat-actif{background:rgba(16,185,129,0.12);color:#6ee7b7}
+    .stat-inactif{background:rgba(100,116,139,0.15);color:var(--muted)}
+    .stat-banni{background:rgba(239,68,68,0.12);color:#fca5a5}
+
+    /* Scrollbar personnalisée pour le chat */
+    .chat-body::-webkit-scrollbar{width:5px}
+    .chat-body::-webkit-scrollbar-track{background:transparent}
+    .chat-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
+    .chat-body::-webkit-scrollbar-thumb:hover{background:var(--dim)}
+
+    /* Bouton retour en bas */
+    .scroll-to-bottom{
+      position:fixed;
+      bottom:90px;
+      right:24px;
+      background:var(--purple);
+      color:white;
+      border:none;
+      border-radius:50%;
+      width:34px;height:34px;
+      font-size:15px;cursor:pointer;
+      display:none;
+      align-items:center;justify-content:center;
+      box-shadow:0 4px 16px rgba(139,92,246,0.4);
+      z-index:20;
+      transition:all 0.2s;
+    }
+    .scroll-to-bottom.visible{display:flex}
+    .scroll-to-bottom:hover{transform:scale(1.1)}
+  </style>
+</head>
+<body>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="Image agrandie">
+  <div class="lightbox-hint">Cliquez pour fermer · Scroll pour zoomer</div>
+</div>
+
+<!-- MODAL TICKET -->
+<div class="moverlay" id="tModal">
+  <div class="modal">
+    <button class="mclose" onclick="closeModal()">✕</button>
+    <div id="modal-body"><div class="loading"><div class="loader"></div></div></div>
+  </div>
+</div>
+
+<!-- MODAL ADD/EDIT USER OR AGENT -->
+<div class="moverlay" id="addModal">
+  <div class="modal" style="width:480px">
+    <button class="mclose" onclick="closeAddModal()">✕</button>
+    <div id="add-modal-body"></div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRM DELETE -->
+<div class="moverlay" id="confirmModal">
+  <div class="modal" style="width:380px;text-align:center">
+    <div style="font-size:32px;margin-bottom:12px">⚠️</div>
+    <div class="modal-title" id="confirm-title">Confirmer la suppression</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:22px" id="confirm-msg">Cette action est irréversible.</div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="bxs bo_" onclick="closeConfirmModal()" style="padding:9px 20px">Annuler</button>
+      <button class="bxs" id="confirm-ok-btn" style="padding:9px 20px;background:var(--red);color:white;border:none">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<!-- AUTH -->
+<div id="auth">
+  <div class="acard">
+    
+    <h2>Agents uniquement</h2>
+    <p>Authentification réservée aux agents de support</p>
+    <div class="fg"><label>Email agent</label><input type="email" id="a-email" placeholder="agent@support.com" onkeydown="if(event.key==='Enter')agentLogin()"></div>
+    <div class="fg"><label>Mot de passe</label><input type="password" id="a-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')agentLogin()"></div>
+    <button class="bfull" id="btn-login" onclick="agentLogin()">Accéder au portail</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="layout">
+    <aside class="sb">
+      <div class="sb-logo">Support<span>M</span>H</div>
+      <div class="sb-tag">Admin Console</div>
+      <span class="nl">Vue globale</span>
+      <div class="ni active" onclick="showPage('dashboard')" data-page="dashboard"><span class="ico">📊</span>Dashboard</div>
+      <span class="nl">Gestion</span>
+      <div class="ni" onclick="showPage('tickets')" data-page="tickets"><span class="ico">🎫</span>Tous les tickets<span class="nbadge" id="b-urg">0</span></div>
+      <div class="ni" onclick="showPage('messages')" data-page="messages"><span class="ico">💬</span>Messages users<span class="nbadge" id="b-msg">0</span></div>
+      <div class="ni" onclick="showPage('agents')" data-page="agents"><span class="ico">👥</span>Agents</div>
+      <div class="ni" onclick="showPage('utilisateurs')" data-page="utilisateurs"><span class="ico">🧒🏽</span>Utilisateurs</div>
+      <span class="nl">Administration</span>
+      <div class="ni" onclick="showPage('gestion-agents')" data-page="gestion-agents"><span class="ico">⚙️</span>Gérer agents</div>
+      <div class="ag-card">
+        <div class="ag-name" id="ag-name">—</div>
+        <div class="ag-role" id="ag-role">Agent</div>
+        <button class="bout" onclick="logout()">Déconnexion</button>
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <!-- DASHBOARD -->
+      <div class="main-scroll">
+        <div class="page active" id="page-dashboard">
+          <div class="ph">
+            <div><div class="pt">Dashboard</div><div class="ps">Vue temps réel</div></div>
+            <button class="bxs bo_" onclick="loadDashboard()">↻ Actualiser</button>
+          </div>
+          <div class="kg">
+            <div class="kc blue"><div class="kv" id="k-tot">—</div><div class="kl">Total tickets</div></div>
+            <div class="kc red"><div class="kv" id="k-urg">—</div><div class="kl">Urgents</div></div>
+            <div class="kc yellow"><div class="kv" id="k-open">—</div><div class="kl">Ouverts</div></div>
+            <div class="kc green"><div class="kv" id="k-done">—</div><div class="kl">Résolus</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 320px;gap:16px;margin-bottom:20px">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px">
+              <div style="font-family:'Clash Display';font-size:13px;font-weight:700;margin-bottom:16px">📅 Tickets — 30 jours</div>
+              <canvas id="c-line" height="100"></canvas>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px">
+              <div style="font-family:'Clash Display';font-size:13px;font-weight:700;margin-bottom:16px">🏷️ Par catégorie</div>
+              <canvas id="c-donut" height="130"></canvas>
+            </div>
+          </div>
+          <div class="tc">
+            <div class="tb"><div class="tt">⚡ Tickets urgents</div></div>
+            <div id="dash-urgent"><div class="loading"><div class="loader"></div></div></div>
+          </div>
+        </div>
+
+        <!-- TICKETS -->
+        <div class="page" id="page-tickets">
+          <div class="ph"><div><div class="pt">Gestion des tickets</div><div class="ps">Tous les tickets</div></div>
+            <button class="bxs bo_" onclick="loadAllTickets()">↻ Actualiser</button>
+          </div>
+          <div class="tc">
+            <div class="tb">
+              <div class="tt">Tickets</div>
+              <input class="sinp" id="s-tick" placeholder="🔍 Rechercher..." oninput="filterTickets()">
+              <button class="fbtn active" onclick="setFilter('all',this)">Tous</button>
+              <button class="fbtn" onclick="setFilter('ouvert',this)">Ouverts</button>
+              <button class="fbtn" onclick="setFilter('urgent_',this)">Urgents</button>
+              <button class="fbtn" onclick="setFilter('en_cours',this)">En cours</button>
+              <button class="fbtn" onclick="setFilter('resolu',this)">Résolus</button>
+            </div>
+            <div id="all-tickets"><div class="loading"><div class="loader"></div></div></div>
+          </div>
+        </div>
+
+        <!-- AGENTS -->
+        <div class="page" id="page-agents">
+          <div class="ph"><div><div class="pt">Équipe Agents</div><div class="ps">Performance</div></div></div>
+          <div class="tc"><div id="agents-t"><div class="loading"><div class="loader"></div></div></div></div>
+        </div>
+
+        <!-- UTILISATEURS -->
+        <div class="page" id="page-utilisateurs">
+          <div class="ph">
+            <div><div class="pt">Utilisateurs</div><div class="ps">Tous les comptes utilisateurs</div></div>
+            <div style="display:flex;gap:8px">
+              <button class="bxs bo_" onclick="loadUtilisateurs()">↻ Actualiser</button>
+              <button class="bxs bbl" onclick="openAddModal('user')">＋ Nouvel utilisateur</button>
+            </div>
+          </div>
+          <div class="tc">
+            <div class="tb">
+              <div class="tt">Comptes</div>
+              <input class="sinp" id="s-users" placeholder="🔍 Rechercher..." oninput="filterUsers()">
+            </div>
+            <div id="users-t"><div class="loading"><div class="loader"></div></div></div>
+          </div>
+        </div>
+
+        <!-- GESTION AGENTS -->
+        <div class="page" id="page-gestion-agents">
+          <div class="ph">
+            <div><div class="pt">Gérer les agents</div><div class="ps">Ajouter, modifier ou supprimer des agents</div></div>
+            <div style="display:flex;gap:8px">
+              <button class="bxs bo_" onclick="loadGestionAgents()">↻ Actualiser</button>
+              <button class="bxs bpur" onclick="openAddModal('agent')">＋ Nouvel agent</button>
+            </div>
+          </div>
+          <div class="tc">
+            <div class="tb">
+              <div class="tt">Agents</div>
+              <input class="sinp" id="s-agents-mgmt" placeholder="🔍 Rechercher..." oninput="filterAgentsMgmt()">
+            </div>
+            <div id="agents-mgmt-t"><div class="loading"><div class="loader"></div></div></div>
+          </div>
+        </div>
+      </div><!-- /.main-scroll -->
+
+      <!-- MESSAGES — position absolute, couvre tout le main -->
+      <div class="page" id="page-messages">
+        <div class="ph">
+          <div><div class="pt">Messages Utilisateurs</div><div class="ps">Lisez et répondez — les utilisateurs voient vos réponses en temps réel</div></div>
+          <button class="bxs bo_" onclick="loadMessages()">↻ Actualiser</button>
+        </div>
+        <div class="msg-layout">
+          <div class="msg-left">
+            <div class="msg-left-head">
+              <div class="msg-left-title">Conversations</div>
+              <span id="msg-count" style="font-size:11px;color:var(--muted)">—</span>
+            </div>
+            <div class="msg-list" id="msg-list-items"><div class="loading"><div class="loader"></div></div></div>
+          </div>
+          <div class="msg-right" id="admin-chat">
+            <div class="chat-empty">Sélectionnez une conversation</div>
+          </div>
+        </div>
+      </div><!-- /#page-messages -->
+
+    </main>
+  </div>
+</div>
+
+<input type="file" id="admin-attach-input" accept=".jpg,.jpeg,.png,.gif,.pdf" style="display:none" onchange="previewAdminAttach(this)">
+
+<script>
+const API = '/api';
+let agentUser=null, agentToken=null, currentFilter='all', currentMsgTicketId=null;
+let allTicketsData=[], chartLine=null, chartDonut=null;
+let adminAttachedFile=null;
+
+// ── AUTH ──────────────────────────────────
+async function agentLogin() {
+  const email=document.getElementById('a-email').value.trim();
+  const pass=document.getElementById('a-pass').value;
+  if (!email||!pass) return toast('Remplissez tous les champs','err');
+  const btn=document.getElementById('btn-login');
+  btn.disabled=true; btn.textContent='Connexion...';
+  try {
+    const r=await fetch(`${API}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,mot_de_passe:pass,type:'agent'})});
+    const d=await r.json();
+    if (!r.ok) return toast(d.error||'Identifiants incorrects','err');
+    initAdmin(d.token,d.user);
+  } catch { toast('Serveur inaccessible','err'); }
+  finally { btn.disabled=false; btn.textContent='Accéder au portail'; }
+}
+
+function initAdmin(t,u) {
+  agentToken=t; agentUser=u;
+  localStorage.setItem('sd_agent_token',t);
+  localStorage.setItem('sd_agent_user',JSON.stringify(u));
+  document.getElementById('auth').style.display='none';
+  document.getElementById('app').classList.add('show');
+  document.getElementById('ag-name').textContent=`${u.prenom} ${u.nom}`;
+  document.getElementById('ag-role').textContent=u.niveau||'Agent';
+  loadDashboard();
+}
+
+function logout() {
+  localStorage.removeItem('sd_agent_token'); localStorage.removeItem('sd_agent_user');
+  agentUser=null; agentToken=null;
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('auth').style.display='flex';
+}
+
+// ── NAVIGATION ────────────────────────────
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
+  document.querySelector(`[data-page="${p}"]`)?.classList.add('active');
+  document.getElementById(`page-${p}`)?.classList.add('active');
+
+  if (p==='dashboard') loadDashboard();
+  else if (p==='tickets') loadAllTickets();
+  else if (p==='messages') loadMessages();
+  else if (p==='agents') loadAgents();
+  else if (p==='utilisateurs') loadUtilisateurs();
+  else if (p==='gestion-agents') loadGestionAgents();
+}
+
+// ── DASHBOARD ─────────────────────────────
+async function loadDashboard() {
+  try {
+    const r=await fetch(`${API}/tickets?limit=100`,{headers:{Authorization:`Bearer ${agentToken}`}});
+    if (!r.ok) throw new Error();
+    const d=await r.json();
+    allTicketsData=d.tickets||[];
+    const urg=allTicketsData.filter(t=>t.priorite==='urgent'&&!['resolu','ferme'].includes(t.statut)).length;
+    document.getElementById('k-tot').textContent=allTicketsData.length;
+    document.getElementById('k-urg').textContent=urg;
+    document.getElementById('k-open').textContent=allTicketsData.filter(t=>t.statut==='ouvert').length;
+    document.getElementById('k-done').textContent=allTicketsData.filter(t=>t.statut==='resolu').length;
+    if (urg>0){document.getElementById('b-urg').textContent=urg;document.getElementById('b-urg').style.display='inline-block';}
+    renderTicketRows('dash-urgent',allTicketsData.filter(t=>t.priorite==='urgent'&&!['resolu','ferme'].includes(t.statut)));
+    renderCharts();
+    const msgs=allTicketsData.filter(t=>(t.nb_commentaires||0)>0).length;
+    if (msgs>0){document.getElementById('b-msg').textContent=msgs;document.getElementById('b-msg').style.display='inline-block';}
+  } catch { ['k-tot','k-urg','k-open','k-done'].forEach(id=>document.getElementById(id).textContent='—'); }
+}
+
+// ── TICKETS ───────────────────────────────
+async function loadAllTickets() {
+  document.getElementById('all-tickets').innerHTML=`<div class="loading"><div class="loader"></div></div>`;
+  try {
+    const r=await fetch(`${API}/tickets?limit=100`,{headers:{Authorization:`Bearer ${agentToken}`}});
+    if (!r.ok) throw new Error();
+    const d=await r.json();
+    allTicketsData=d.tickets||[];
+    filterTickets();
+  } catch { document.getElementById('all-tickets').innerHTML=`<div class="empty">Impossible de charger.</div>`; }
+}
+
+function setFilter(f,btn) {
+  currentFilter=f;
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filterTickets();
+}
+
+function filterTickets() {
+  const s=document.getElementById('s-tick')?.value.toLowerCase()||'';
+  let t=[...allTicketsData];
+  if (currentFilter==='urgent_') t=t.filter(x=>x.priorite==='urgent');
+  else if (currentFilter!=='all') t=t.filter(x=>x.statut===currentFilter);
+  if (s) t=t.filter(x=>x.reference.toLowerCase().includes(s)||x.titre.toLowerCase().includes(s)||(x.utilisateur_nom||'').toLowerCase().includes(s));
+  renderTicketRows('all-tickets',t);
+}
+
+function renderTicketRows(id,tickets) {
+  const el=document.getElementById(id);
+  if (!tickets.length){el.innerHTML=`<div class="empty">Aucun ticket</div>`;return;}
+  el.innerHTML=`<table>
+    <thead><tr><th>Réf.</th><th>Titre / User</th><th>Priorité</th><th>Statut</th><th>Agent</th><th>SLA</th><th>Actions</th></tr></thead>
+    <tbody>${tickets.map(t=>{
+      const sd=new Date(t.sla_echeance);
+      const exp=sd<new Date();
+      const hl=(sd-new Date())/3600000;
+      const sc=exp?'var(--red)':hl<4?'var(--yellow)':'var(--green)';
+      const st=exp?'Dépassé':hl<1?`${Math.round(hl*60)}min`:`${Math.round(hl)}h`;
+      return `<tr>
+        <td style="font-family:'Clash Display';font-size:10px;font-weight:700;color:var(--blue)">${t.reference}</td>
+        <td><div style="font-weight:600;font-size:12px">${t.titre}</div><div style="font-size:10px;color:var(--muted)">${t.utilisateur_nom||'—'}</div></td>
+        <td><span class="badge b${t.priorite[0]}">${t.priorite}</span></td>
+        <td><span class="badge b${t.statut.replace(/_/g,'')}">${sLbl(t.statut)}</span></td>
+        <td style="font-size:11px;color:var(--muted)">${t.agent_nom||'<span style="color:var(--red)">—</span>'}</td>
+        <td style="font-size:11px;font-weight:600;color:${sc}">${st}</td>
+        <td style="display:flex;gap:5px">
+          <button class="bxs bo_" onclick="openModal(${t.id})">Gérer</button>
+          ${!t.agent_nom?`<button class="bxs bbl" onclick="takeTicket(${t.id},event)">Prendre</button>`:''}
+        </td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+// ── MODAL TICKET ──────────────────────────
+async function openModal(id) {
+  document.getElementById('tModal').classList.add('open');
+  document.getElementById('modal-body').innerHTML=`<div class="loading"><div class="loader"></div></div>`;
+  try {
+    const r=await fetch(`${API}/tickets/${id}`,{headers:{Authorization:`Bearer ${agentToken}`}});
+    if (!r.ok) throw new Error();
+    const d=await r.json();
+    renderModal(d.ticket, d.commentaires||[]);
+  } catch { document.getElementById('modal-body').innerHTML=`<div class="empty">Impossible de charger.</div>`; }
+}
+
+function renderModal(ticket, commentaires) {
+  const msgs=commentaires.filter(c=>!c.interne);
+  const BASE=window.location.origin;
+  const statusColors={ouvert:'var(--blue)',en_cours:'var(--yellow)',en_attente:'var(--purple)',resolu:'var(--green)',ferme:'var(--muted)'};
+  const agentsDemo=[{id:1,name:'Sophie Martin'},{id:2,name:'Pierre Dubois'},{id:3,name:'Admin System'}];
+
+  document.getElementById('modal-body').innerHTML=`
+    <div class="modal-title">${ticket.reference} — ${ticket.titre}</div>
+    <div style="display:flex;gap:7px;margin-bottom:14px">
+      <span class="badge b${ticket.priorite[0]}">${ticket.priorite}</span>
+      <span class="badge b${ticket.statut.replace(/_/g,'')}">${sLbl(ticket.statut)}</span>
+      <span style="margin-left:auto;font-size:11px;color:var(--muted)">${ticket.utilisateur_nom||'—'}</span>
+    </div>
+    <div style="font-size:12px;color:var(--muted);background:var(--surface2);border-radius:9px;padding:12px;margin-bottom:16px;line-height:1.7">${ticket.description||'—'}</div>
+
+    ${ticket.piece_jointe_url?`
+    <div style="margin-bottom:14px;padding:10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:7px">📎 Pièce jointe de l'utilisateur</div>
+      ${isImage(ticket.piece_jointe_url)?
+        `<img src="${BASE}${ticket.piece_jointe_url}" style="max-width:100%;max-height:200px;border-radius:6px;cursor:pointer" onclick="openLightbox('${BASE}${ticket.piece_jointe_url}')" alt="Image">`:
+        `<a href="${BASE}${ticket.piece_jointe_url}" target="_blank" style="color:var(--blue);font-size:12px">📄 Télécharger</a>`}
+    </div>`:''}
+
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Statut</div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px">
+      ${['ouvert','en_cours','en_attente','resolu','ferme'].map(s=>`
+        <div class="sbtn" style="color:${statusColors[s]};border-color:${statusColors[s]}40;background:${s===ticket.statut?statusColors[s]+'18':'transparent'};cursor:pointer" onclick="changeStatus(${ticket.id},'${s}')">${sLbl(s)}</div>`).join('')}
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Assigner</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+      ${agentsDemo.map(a=>`<button class="bxs ${ticket.agent_nom===a.name?'bbl':'bo_'}" onclick="assignAgent(${ticket.id},'${a.name}')">${a.name}</button>`).join('')}
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">
+      Messages reçus (${msgs.length})
+    </div>
+    <div style="max-height:180px;overflow-y:auto;margin-bottom:12px">
+      ${msgs.length===0?'<div style="color:var(--muted);font-size:12px;padding:10px">Aucun message</div>':''}
+      ${msgs.map(m=>`
+        <div style="padding:9px 11px;background:${m.auteur_type==='agent'?'rgba(139,92,246,0.1)':'var(--surface2)'};border-radius:8px;margin-bottom:6px;border-left:2px solid ${m.auteur_type==='agent'?'var(--purple)':'var(--blue)'}">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${m.auteur_nom||'?'} · ${m.auteur_type==='agent'?'Agent':'Utilisateur'} · ${fdt(m.date_creation)}</div>
+          <div style="font-size:12px">${m.contenu}</div>
+          ${m.piece_jointe_url?`<div style="margin-top:6px">${isImage(m.piece_jointe_url)?
+            `<img src="${BASE}${m.piece_jointe_url}" style="max-width:150px;max-height:100px;border-radius:6px;cursor:pointer" onclick="openLightbox('${BASE}${m.piece_jointe_url}')" alt="Image">`:
+            `<a href="${BASE}${m.piece_jointe_url}" target="_blank" style="color:var(--blue);font-size:11px">📄 Fichier joint</a>`}
+          </div>`:''}
+        </div>`).join('')}
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Répondre à l'utilisateur</div>
+    <textarea id="modal-reply" placeholder="Votre réponse (visible par l'utilisateur)..." style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:9px;font-family:'Satoshi';font-size:12px;outline:none;resize:vertical;min-height:70px;margin-bottom:8px"></textarea>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="bxs bpur" style="padding:8px 16px" id="btn-modal-reply" onclick="sendModalReply(${ticket.id})">Envoyer la réponse</button>
+      <button class="bxs bo_" onclick="closeModal()">Fermer</button>
+    </div>`;
+}
+
+function closeModal() { document.getElementById('tModal').classList.remove('open'); }
+
+async function changeStatus(id, statut) {
+  try {
+    await fetch(`${API}/tickets/${id}/statut`,{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:`Bearer ${agentToken}`},body:JSON.stringify({statut,commentaire:`Statut : ${sLbl(statut)}`})});
+  } catch {}
+  toast(`Statut → ${sLbl(statut)} ✅`,'ok');
+  closeModal(); loadAllTickets(); loadDashboard();
+}
+
+async function sendModalReply(id) {
+  const ta=document.getElementById('modal-reply');
+  const btn=document.getElementById('btn-modal-reply');
+  const txt=ta?.value?.trim();
+  if (!txt) return toast('Écrivez votre réponse','err');
+  btn.disabled=true; btn.textContent='Envoi...';
+  try {
+    const r=await fetch(`${API}/tickets/${id}/commentaires`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${agentToken}`},body:JSON.stringify({contenu:txt,interne:false})});
+    if (!r.ok) throw new Error();
+    toast('✅ Réponse envoyée — l\'utilisateur la voit dans son portail','ok');
+    ta.value='';
+    closeModal();
+  } catch { toast('Erreur d\'envoi','err'); }
+  finally { btn.disabled=false; btn.textContent='Envoyer la réponse'; }
+}
+
+async function takeTicket(id,e) {
+  e.stopPropagation();
+  try { await fetch(`${API}/tickets/${id}/assigner`,{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:`Bearer ${agentToken}`},body:JSON.stringify({agent_id:agentUser.id})}); } catch {}
+  toast('Ticket pris en charge ✅','ok');
+  loadAllTickets(); loadDashboard();
+}
+
+async function assignAgent(id,name) {
+  toast(`Assigné à ${name} ✅`,'ok');
+  closeModal(); loadAllTickets();
+}
+
+// ── MESSAGERIE ADMIN ──────────────────────
+async function loadMessages() {
+  document.getElementById('msg-list-items').innerHTML=`<div class="loading"><div class="loader"></div></div>`;
+  document.getElementById('admin-chat').innerHTML=`<div class="chat-empty">Sélectionnez une conversation</div>`;
+
+  try {
+    const r=await fetch(`${API}/tickets?limit=100`,{headers:{Authorization:`Bearer ${agentToken}`}});
+    if (!r.ok) throw new Error();
+    const d=await r.json();
+    const tickets=(d.tickets||[]).filter(t=>(t.nb_commentaires||0)>0);
+
+    document.getElementById('msg-count').textContent=`${tickets.length} conversation${tickets.length>1?'s':''}`;
+    const b=document.getElementById('b-msg');
+    if (tickets.length>0){b.textContent=tickets.length;b.style.display='inline-block';}else b.style.display='none';
+
+    if (!tickets.length) {
+      document.getElementById('msg-list-items').innerHTML=`<div class="empty">Aucun message reçu</div>`;
+      return;
+    }
+
+    document.getElementById('msg-list-items').innerHTML=tickets.map(t=>`
+      <div class="msg-item ${currentMsgTicketId===t.id?'active':''}" id="mi-${t.id}" onclick="openMsgThread(${t.id})">
+        <div class="mi-top">
+          <div class="mi-name">${t.utilisateur_nom||'Utilisateur'}</div>
+          <div class="mi-time">${fd(t.date_creation)}</div>
+        </div>
+        <div class="mi-ref">${t.reference}</div>
+        <div class="mi-prev">${t.titre}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">${t.nb_commentaires} msg · ${sLbl(t.statut)}</div>
+      </div>`).join('');
+  } catch { document.getElementById('msg-list-items').innerHTML=`<div class="empty">Erreur</div>`; }
+}
+
+async function openMsgThread(ticketId) {
+  currentMsgTicketId=ticketId;
+  document.querySelectorAll('.msg-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById(`mi-${ticketId}`)?.classList.add('active');
+  document.getElementById('admin-chat').innerHTML=`<div class="chat-empty"><div class="loader"></div></div>`;
+
+  try {
+    const r=await fetch(`${API}/tickets/${ticketId}`,{headers:{Authorization:`Bearer ${agentToken}`}});
+    if (!r.ok) throw new Error();
+    const d=await r.json();
+    const ticket=d.ticket;
+    const msgs=(d.commentaires||[]).filter(c=>!c.interne);
+    const BASE=window.location.origin;
+    const initials=(ticket.utilisateur_nom||'U').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+
+    document.getElementById('admin-chat').innerHTML=`
+      <div class="msg-right-head">
+        <div class="msg-right-info">
+          <div class="mavatar">${initials}</div>
+          <div>
+            <div class="muser">${ticket.utilisateur_nom||'Utilisateur'}</div>
+            <div class="mticket" onclick="openModal(${ticketId})">${ticket.reference} — ${ticket.titre}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="badge b${ticket.statut.replace(/_/g,'')}">${sLbl(ticket.statut)}</span>
+          <button class="bxs bo_" onclick="openMsgThread(${ticketId})" title="Rafraîchir">↻</button>
+          <button class="bxs bo_" onclick="openModal(${ticketId})">Voir ticket</button>
+        </div>
+      </div>
+
+      <div class="chat-body" id="chat-body-${ticketId}" onscroll="handleChatScroll(${ticketId})">
+        ${msgs.length===0
+          ? `<div class="chat-empty">Aucun message pour ce ticket</div>`
+          : msgs.map(m=>renderBubble(m, BASE)).join('')}
+      </div>
+      <button class="scroll-to-bottom" id="stb-${ticketId}" onclick="scrollToBottom(${ticketId})" title="↓">↓</button>
+
+      <div class="reply-zone">
+        <div class="reply-row">
+          <textarea class="rinput" id="reply-${ticketId}"
+            placeholder="Répondre à ${ticket.utilisateur_nom||'l\'utilisateur'}..."
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendReply(${ticketId})}"
+        ></textarea>
+          <button class="btn-attach-admin" onclick="triggerAdminAttach(${ticketId})" title="Joindre une image">📎</button>
+          <button class="rbtn" id="rbtn-${ticketId}" onclick="sendReply(${ticketId})">Envoyer</button>
+        </div>
+        <div class="reply-preview" id="reply-preview-${ticketId}">
+          <span id="reply-preview-name-${ticketId}"></span>
+          <span class="reply-preview-close" onclick="clearAttach(${ticketId})">✕</span>
+        </div>
+      </div>`;
+
+    // Scroll immédiat au chargement, puis smooth pour les nouveaux messages
+    const cb=document.getElementById(`chat-body-${ticketId}`);
+    if (cb) cb.scrollTop = cb.scrollHeight; // immédiat
+    // Re-scroll après 150ms pour les images lazy
+    setTimeout(()=>{
+      const cb2=document.getElementById(`chat-body-${ticketId}`);
+      if (cb2) cb2.scrollTop = cb2.scrollHeight;
+    }, 150);
+    setTimeout(()=>{
+      const cb3=document.getElementById(`chat-body-${ticketId}`);
+      if (cb3) cb3.scrollTop = cb3.scrollHeight;
+    }, 500);
+
+  } catch { document.getElementById('admin-chat').innerHTML=`<div class="chat-empty">Erreur de chargement</div>`; }
+}
+
+function scrollToBottom(ticketId) {
+  const cb=document.getElementById(`chat-body-${ticketId}`);
+  if (!cb) return;
+  cb.scrollTop = cb.scrollHeight;
+  const stb=document.getElementById(`stb-${ticketId}`);
+  if (stb) stb.classList.remove('visible');
+}
+
+function scrollAfterImages(ticketId) {
+  // Scroll immédiat
+  scrollToBottom(ticketId);
+  // Re-scroll après 100ms, 300ms, 600ms pour attraper les images qui chargent
+  [100, 300, 600].forEach(ms => setTimeout(()=>scrollToBottom(ticketId), ms));
+  // Re-scroll pour chaque image quand elle finit de charger
+  const cb = document.getElementById(`chat-body-${ticketId}`);
+  if (!cb) return;
+  cb.querySelectorAll('.bubble-img').forEach(img => {
+    if (!img.complete) {
+      img.addEventListener('load', () => scrollToBottom(ticketId));
+    }
+  });
+}
+
+function handleChatScroll(ticketId) {
+  const cb=document.getElementById(`chat-body-${ticketId}`);
+  const stb=document.getElementById(`stb-${ticketId}`);
+  if (!cb||!stb) return;
+  const distFromBottom=cb.scrollHeight - cb.scrollTop - cb.clientHeight;
+  stb.classList.toggle('visible', distFromBottom > 120);
+}
+
+function autoResize(el) {
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight, 120)+'px';
+}
+
+function renderBubble(m, BASE) {
+  const isMe = m.auteur_type==='agent';
+  const initials=(m.auteur_nom||'?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  let mediaHtml='';
+  if (m.piece_jointe_url) {
+    const url=m.piece_jointe_url.startsWith('http')?m.piece_jointe_url:`${BASE}${m.piece_jointe_url}`;
+    if (isImage(m.piece_jointe_url)) {
+      // onload → scroll au bas une fois l'image chargée
+      mediaHtml=`<img src="${url}" class="bubble-img"
+        onclick="openLightbox('${url}')"
+        onload="(function(img){var cb=img.closest('.chat-body');if(cb)cb.scrollTop=cb.scrollHeight;})(this)"
+        alt="Image jointe">`;
+    } else {
+      mediaHtml=`<a href="${url}" target="_blank" style="color:var(--blue);font-size:11px;display:flex;align-items:center;gap:5px;margin-top:6px">📄 Télécharger le fichier</a>`;
+    }
+  }
+  return `
+    <div class="bubble ${isMe?'me':''}">
+      <div class="bav ${isMe?'agent':'user'}">${initials}</div>
+      <div class="bcont">
+        <div class="bname">${m.auteur_nom||'?'} ${isMe
+          ?'<span style="color:var(--purple);font-size:9px">· Vous</span>'
+          :'<span style="color:var(--blue);font-size:9px">· User</span>'}</div>
+        <div class="btext">${m.contenu}${mediaHtml?`<br>${mediaHtml}`:''}</div>
+        <div class="btime">${fdt(m.date_creation)}</div>
+      </div>
+    </div>`;
+}
+
+// ── ATTACHER FICHIER (admin) ──────────────
+let adminAttachForTicket=null;
+
+function triggerAdminAttach(ticketId) {
+  adminAttachForTicket=ticketId;
+  document.getElementById('admin-attach-input').click();
+}
+
+function previewAdminAttach(input) {
+  const file=input.files[0];
+  if (!file) return;
+  adminAttachedFile=file;
+  const preview=document.getElementById(`reply-preview-${adminAttachForTicket}`);
+  const name=document.getElementById(`reply-preview-name-${adminAttachForTicket}`);
+  if (preview&&name) {
+    name.textContent=`📎 ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+    preview.style.display='flex';
+  }
+}
+
+function clearAttach(ticketId) {
+  adminAttachedFile=null;
+  document.getElementById('admin-attach-input').value='';
+  const preview=document.getElementById(`reply-preview-${ticketId}`);
+  if (preview) preview.style.display='none';
+}
+
+async function sendReply(ticketId) {
+  const input=document.getElementById(`reply-${ticketId}`);
+  const btn=document.getElementById(`rbtn-${ticketId}`);
+  const txt=input?.value?.trim();
+  const hasFile=adminAttachedFile&&adminAttachForTicket===ticketId;
+
+  if (!txt&&!hasFile) return toast('Écrivez votre réponse ou joignez un fichier','err');
+  input.disabled=true; btn.disabled=true; btn.textContent='...';
+
+  try {
+    const fd=new FormData();
+    fd.append('contenu', txt||'(fichier joint)');
+    fd.append('interne','false');
+    if (hasFile) fd.append('piece_jointe', adminAttachedFile);
+
+    const r=await fetch(`${API}/tickets/${ticketId}/commentaires`,{
+      method:'POST',
+      headers:{Authorization:`Bearer ${agentToken}`},
+      body:fd
+    });
+    if (!r.ok) throw new Error();
+
+    input.value='';
+    input.style.height='auto';
+    clearAttach(ticketId);
+    toast('✅ Réponse envoyée — l\'utilisateur la voit dans son portail','ok');
+    await openMsgThread(ticketId);
+  } catch { toast('Erreur d\'envoi','err'); }
+  finally { if(input)input.disabled=false; if(btn){btn.disabled=false;btn.textContent='Envoyer';} }
+}
+
+// ── AGENTS ────────────────────────────────
+async function loadAgents() {
+  try {
+    const r=await fetch(`${API}/agents`,{headers:{Authorization:`Bearer ${agentToken}`}});
+    if (!r.ok) throw new Error();
+    const agents=await r.json();
+    document.getElementById('agents-t').innerHTML=`<table>
+      <thead><tr><th>Agent</th><th>Spécialité</th><th>Niveau</th><th>Tickets actifs</th></tr></thead>
+      <tbody>${agents.map(a=>`<tr>
+        <td><div style="display:flex;align-items:center;gap:9px">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0">${a.prenom[0]}${a.nom[0]}</div>
+          <div><div style="font-weight:600;font-size:12px">${a.prenom} ${a.nom}</div><div style="font-size:10px;color:var(--muted)">${a.email}</div></div>
+        </div></td>
+        <td style="color:var(--muted);font-size:12px">${a.specialite||'—'}</td>
+        <td><span class="badge ${a.niveau==='senior'||a.niveau==='admin'?'bec':'bf'}">${a.niveau||'—'}</span></td>
+        <td style="font-family:'Clash Display';font-weight:700;color:var(--blue)">${a.tickets_actifs||0}</td>
+      </tr>`).join('')}</tbody></table>`;
+  } catch { document.getElementById('agents-t').innerHTML=`<div class="empty">Impossible de charger.</div>`; }
+}
+
+// ── CHARTS ────────────────────────────────
+function renderCharts() {
+  const ctx1=document.getElementById('c-line')?.getContext('2d');
+  if (ctx1) {
+    if (chartLine) chartLine.destroy();
+    const labels=[],data=[];
+    for (let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);labels.push(d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'}));data.push(Math.floor(Math.random()*8)+1);}
+    chartLine=new Chart(ctx1,{type:'line',data:{labels,datasets:[{label:'Tickets',data,borderColor:'#0ea5e9',backgroundColor:'rgba(14,165,233,0.07)',fill:true,tension:0.4,pointRadius:0,borderWidth:2}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{color:'#142030'},ticks:{color:'#3d5a76',maxTicksLimit:8,font:{size:10}}},y:{grid:{color:'#142030'},ticks:{color:'#3d5a76',font:{size:10}}}}}});
+  }
+  const ctx2=document.getElementById('c-donut')?.getContext('2d');
+  if (ctx2) {
+    if (chartDonut) chartDonut.destroy();
+    const cats={materiel:0,logiciel:0,reseau:0,acces:0,autre:0};
+    allTicketsData.forEach(t=>{if(cats[t.categorie]!==undefined)cats[t.categorie]++;else cats.autre++;});
+    chartDonut=new Chart(ctx2,{type:'doughnut',data:{labels:['Matériel','Logiciel','Réseau','Accès','Autre'],datasets:[{data:Object.values(cats),backgroundColor:['#0ea5e9','#8b5cf6','#10b981','#f59e0b','#ef4444'],borderWidth:0,hoverOffset:4}]},options:{plugins:{legend:{position:'bottom',labels:{color:'#7ca3c4',font:{size:10},padding:8}}},cutout:'65%'}});
+  }
+}
+
+// ── LIGHTBOX ──────────────────────────────
+function openLightbox(url) {
+  document.getElementById('lightbox-img').src=url;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+
+// Fermer lightbox avec Escape
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeLightbox();closeModal();}
+});
+
+// ── HELPERS ───────────────────────────────
+const sLbl=s=>({ouvert:'Ouvert',en_cours:'En cours',resolu:'Résolu',ferme:'Fermé',en_attente:'En attente'}[s]||s);
+const fd=d=>new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});
+const fdt=d=>new Date(d).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+const isImage=url=>url&&/\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+
+function toast(msg,type='ok'){
+  const c=document.getElementById('toasts');
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span>${type==='ok'?'✅':'❌'}</span><span>${msg}</span>`;
+  c.appendChild(el);
+  setTimeout(()=>el.remove(),4000);
+}
+
+document.getElementById('tModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+document.getElementById('addModal').addEventListener('click',function(e){if(e.target===this)closeAddModal();});
+document.getElementById('confirmModal').addEventListener('click',function(e){if(e.target===this)closeConfirmModal();});
+
+// ── UTILISATEURS ──────────────────────────
+let allUsersData=[];
+
+async function loadUtilisateurs() {
+  document.getElementById('users-t').innerHTML=`<div class="loading"><div class="loader"></div></div>`;
+  try {
+    const r=await fetch(`${API}/utilisateurs`,{headers:{Authorization:`Bearer ${agentToken}`}});
+    const ct=r.headers.get('content-type')||'';
+    if(!ct.includes('application/json')) throw new Error('NOT_JSON');
+    if(!r.ok){ const e=await r.json(); throw new Error(e.error||`HTTP ${r.status}`); }
+    const data=await r.json();
+    allUsersData=Array.isArray(data)?data:(data.utilisateurs||data.users||data.data||[]);
+    renderUsers(allUsersData);
+  } catch(err) {
+    if(err.message==='NOT_JSON'){
+      toast('Route GET /api/utilisateurs manquante sur le backend','err');
+    } else {
+      toast(err.message||'Erreur chargement utilisateurs','err');
+    }
+    allUsersData=[];
+    document.getElementById('users-t').innerHTML=`
+      <div class="empty" style="padding:40px">
+        <div style="font-size:28px;margin-bottom:12px">⚠️</div>
+        <div style="font-weight:600;margin-bottom:8px;color:var(--text)">Route API manquante</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Ajoutez cette route dans votre backend Node.js :</div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:left;font-family:monospace;font-size:11px;color:var(--blue);line-height:1.8">
+          GET &nbsp;/api/utilisateurs<br>
+          POST &nbsp;/api/utilisateurs<br>
+          PUT &nbsp;&nbsp;/api/utilisateurs/:id<br>
+          DELETE /api/utilisateurs/:id
+        </div>
+        <button class="bxs bbl" style="margin-top:16px" onclick="loadUtilisateurs()">↻ Réessayer</button>
+      </div>`;
+  }
+}
+
+function filterUsers(){
+  const s=document.getElementById('s-users')?.value.toLowerCase()||'';
+  const filtered=s?allUsersData.filter(u=>(u.prenom+' '+u.nom+' '+u.email).toLowerCase().includes(s)):allUsersData;
+  renderUsers(filtered);
+}
+
+function renderUsers(users){
+  const el=document.getElementById('users-t');
+  if(!users.length){el.innerHTML=`<div class="empty">Aucun utilisateur trouvé</div>`;return;}
+  const colors=['#0ea5e9','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4'];
+  el.innerHTML=users.map((u,i)=>{
+    const initials=`${(u.prenom||'?')[0]}${(u.nom||'?')[0]}`.toUpperCase();
+    const color=colors[i%colors.length];
+    const statut=u.statut||'actif';
+    return `<div class="ucard">
+      <div class="uavatar" style="background:${color}">${initials}</div>
+      <div class="uinfo">
+        <div class="uname">${u.prenom} ${u.nom}</div>
+        <div class="uemail">${u.email}</div>
+        <div class="umeta">Inscrit le ${fd(u.date_creation||new Date())} · ${u.departement||'—'} · ${u.nb_tickets||0} ticket(s)</div>
+      </div>
+      <span class="badge stat-${statut}" style="margin-right:12px">${statut}</span>
+      <div class="uactions">
+        <button class="bedit" onclick="openEditUser(${u.id})">✏️ Modifier</button>
+        <button class="bdanger" onclick="confirmDelete('user',${u.id},'${u.prenom} ${u.nom}')">🗑 Supprimer</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── GESTION AGENTS ────────────────────────
+let allAgentsMgmt=[];
+
+async function loadGestionAgents(){
+  document.getElementById('agents-mgmt-t').innerHTML=`<div class="loading"><div class="loader"></div></div>`;
+  try {
+    const r=await fetch(`${API}/agents`,{headers:{Authorization:`Bearer ${agentToken}`}});
+    const ct=r.headers.get('content-type')||'';
+    if(!ct.includes('application/json')) throw new Error('NOT_JSON');
+    if(!r.ok){ const e=await r.json(); throw new Error(e.error||`HTTP ${r.status}`); }
+    const data=await r.json();
+    allAgentsMgmt=Array.isArray(data)?data:(data.agents||data.data||[]);
+    renderAgentsMgmt(allAgentsMgmt);
+  } catch(err) {
+    if(err.message==='NOT_JSON'){
+      toast('Route GET /api/agents manquante sur le backend','err');
+    } else {
+      toast(err.message||'Erreur chargement agents','err');
+    }
+    allAgentsMgmt=[];
+    document.getElementById('agents-mgmt-t').innerHTML=`
+      <div class="empty" style="padding:40px">
+        <div style="font-size:28px;margin-bottom:12px">⚠️</div>
+        <div style="font-weight:600;margin-bottom:8px;color:var(--text)">Route API manquante</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Ajoutez ces routes dans votre backend :</div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:left;font-family:monospace;font-size:11px;color:var(--blue);line-height:1.8">
+          GET &nbsp;/api/agents<br>
+          POST &nbsp;/api/agents<br>
+          PUT &nbsp;&nbsp;/api/agents/:id<br>
+          DELETE /api/agents/:id
+        </div>
+        <button class="bxs bbl" style="margin-top:16px" onclick="loadGestionAgents()">↻ Réessayer</button>
+      </div>`;
+  }
+}
+
+function filterAgentsMgmt(){
+  const s=document.getElementById('s-agents-mgmt')?.value.toLowerCase()||'';
+  const filtered=s?allAgentsMgmt.filter(a=>(a.prenom+' '+a.nom+' '+a.email).toLowerCase().includes(s)):allAgentsMgmt;
+  renderAgentsMgmt(filtered);
+}
+
+function renderAgentsMgmt(agents){
+  const el=document.getElementById('agents-mgmt-t');
+  if(!agents.length){el.innerHTML=`<div class="empty">Aucun agent trouvé</div>`;return;}
+  el.innerHTML=agents.map(a=>{
+    const initials=`${(a.prenom||'?')[0]}${(a.nom||'?')[0]}`.toUpperCase();
+    const niveauColor=a.niveau==='admin'?'#ef4444':a.niveau==='senior'?'#f59e0b':'#7ca3c4';
+    return `<div class="ucard">
+      <div class="uavatar" style="background:linear-gradient(135deg,#0ea5e9,#8b5cf6)">${initials}</div>
+      <div class="uinfo">
+        <div class="uname">${a.prenom} ${a.nom}</div>
+        <div class="uemail">${a.email}</div>
+        <div class="umeta">${a.specialite||'—'} · ${a.tickets_actifs||0} ticket(s) actif(s)</div>
+      </div>
+      <span class="badge" style="background:rgba(255,255,255,0.05);color:${niveauColor};margin-right:12px;border:1px solid ${niveauColor}40">${a.niveau||'—'}</span>
+      <div class="uactions">
+        <button class="bedit" onclick="openEditAgent(${a.id})">✏️ Modifier</button>
+        ${a.niveau!=='admin'?`<button class="bdanger" onclick="confirmDelete('agent',${a.id},'${a.prenom} ${a.nom}')">🗑 Supprimer</button>`:'<span style="font-size:11px;color:var(--dim);padding:5px 11px">Protégé</span>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── MODALS ADD/EDIT ───────────────────────
+function openAddModal(type){
+  document.getElementById('add-modal-body').innerHTML = type==='user' ? renderUserForm(null) : renderAgentForm(null);
+  document.getElementById('addModal').classList.add('open');
+}
+
+function openEditUser(id){
+  const u=allUsersData.find(x=>x.id===id);
+  if(!u) return;
+  document.getElementById('add-modal-body').innerHTML=renderUserForm(u);
+  document.getElementById('addModal').classList.add('open');
+}
+
+function openEditAgent(id){
+  const a=allAgentsMgmt.find(x=>x.id===id);
+  if(!a) return;
+  document.getElementById('add-modal-body').innerHTML=renderAgentForm(a);
+  document.getElementById('addModal').classList.add('open');
+}
+
+function closeAddModal(){document.getElementById('addModal').classList.remove('open');}
+
+function renderUserForm(u){
+  const isEdit=!!u;
+  const v=(f)=>u?.(f)||'';
+  return `
+    <div class="modal-title" style="margin-bottom:18px">${isEdit?'✏️ Modifier l\'utilisateur':'➕ Nouvel utilisateur'}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="fg"><label>Prénom *</label><input type="text" id="uf-prenom" value="${v('prenom')}" placeholder="Prénom"></div>
+      <div class="fg"><label>Nom *</label><input type="text" id="uf-nom" value="${v('nom')}" placeholder="Nom"></div>
+    </div>
+    <div class="fg"><label>Email *</label><input type="email" id="uf-email" value="${v('email')}" placeholder="email@exemple.com"></div>
+    ${!isEdit?'<div class="fg"><label>Mot de passe * (min 6 car.)</label><input type="password" id="uf-pass" placeholder="••••••••"></div>':''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="fg"><label>Téléphone</label><input type="text" id="uf-telephone" value="${v('telephone')}" placeholder="+33 6 00 00 00 00"></div>
+      <div class="fg"><label>Département</label><input type="text" id="uf-departement" value="${v('departement')}" placeholder="IT, RH, Finance..."></div>
+    </div>
+    <div class="fg"><label>Statut</label>
+      <select id="uf-statut">
+        <option value="actif" ${v('statut')==='actif'||!u?'selected':''}>Actif</option>
+        <option value="inactif" ${v('statut')==='inactif'?'selected':''}>Inactif</option>
+        <option value="banni" ${v('statut')==='banni'?'selected':''}>Banni</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="bfull" style="background:var(--blue)" onclick="saveUser(${u?.id||'null'})">${isEdit?'Enregistrer les modifications':'Créer l\'utilisateur'}</button>
+      <button class="bxs bo_" style="padding:12px 18px" onclick="closeAddModal()">Annuler</button>
+    </div>`;
+}
+
+function renderAgentForm(a){
+  const isEdit=!!a;
+  const v=(f)=>a?.[f]||'';
+  return `
+    <div class="modal-title" style="margin-bottom:18px">${isEdit?'✏️ Modifier l\'agent':'➕ Nouvel agent'}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="fg"><label>Prénom *</label><input type="text" id="af-prenom" value="${v('prenom')}" placeholder="Prénom"></div>
+      <div class="fg"><label>Nom *</label><input type="text" id="af-nom" value="${v('nom')}" placeholder="Nom"></div>
+    </div>
+    <div class="fg"><label>Email *</label><input type="email" id="af-email" value="${v('email')}" placeholder="agent@support.com"></div>
+    ${!isEdit?'<div class="fg"><label>Mot de passe * (min 6 car.)</label><input type="password" id="af-pass" placeholder="••••••••"></div>':''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="fg"><label>Niveau</label>
+        <select id="af-niveau">
+          <option value="niveau1" ${v('niveau')==='niveau1'||!a?'selected':''}>Niveau 1</option>
+          <option value="niveau2" ${v('niveau')==='niveau2'?'selected':''}>Niveau 2</option>
+          <option value="senior" ${v('niveau')==='senior'?'selected':''}>Senior</option>
+          <option value="admin" ${v('niveau')==='admin'?'selected':''}>Admin</option>
+        </select>
+      </div>
+      <div class="fg"><label>Spécialité</label>
+        <select id="af-specialite">
+          <option value="Infrastructure Réseau" ${v('specialite')==='Infrastructure Réseau'?'selected':''}>Infrastructure Réseau</option>
+          <option value="Logiciels & Applications" ${v('specialite')==='Logiciels & Applications'?'selected':''}>Logiciels & Applications</option>
+          <option value="Matériel & Hardware" ${v('specialite')==='Matériel & Hardware'?'selected':''}>Matériel & Hardware</option>
+          <option value="Accès & Sécurité" ${v('specialite')==='Accès & Sécurité'?'selected':''}>Accès & Sécurité</option>
+          <option value="Général" ${v('specialite')==='Général'?'selected':''}>Général</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="bfull" style="background:var(--purple)" onclick="saveAgent(${a?.id||'null'})">${isEdit?'Enregistrer les modifications':'Créer l\'agent'}</button>
+      <button class="bxs bo_" style="padding:12px 18px" onclick="closeAddModal()">Annuler</button>
+    </div>`;
+}
+
+// ── SAVE ──────────────────────────────────
+async function saveUser(id){
+  const isEdit=id!==null&&id!='null';
+  const prenom=document.getElementById('uf-prenom')?.value.trim();
+  const nom=document.getElementById('uf-nom')?.value.trim();
+  const email=document.getElementById('uf-email')?.value.trim();
+  const statut=document.getElementById('uf-statut')?.value;
+  const telephone=document.getElementById('uf-telephone')?.value.trim()||'';
+  const departement=document.getElementById('uf-departement')?.value.trim()||'';
+  if(!prenom||!nom||!email) return toast('Prénom, nom et email requis','err');
+  const body={prenom,nom,email,statut,telephone,departement};
+  if(!isEdit){
+    const pass=document.getElementById('uf-pass')?.value;
+    if(!pass||pass.length<6) return toast('Mot de passe requis (6 caractères min)','err');
+    body.mot_de_passe=pass;
+  }
+  const btn=document.getElementById('add-modal-body').querySelector('button.bfull');
+  if(btn){btn.disabled=true;btn.textContent='Enregistrement...';}
+  try {
+    const url=isEdit?`${API}/utilisateurs/${id}`:`${API}/utilisateurs`;
+    const r=await fetch(url,{method:isEdit?'PUT':'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${agentToken}`},body:JSON.stringify(body)});
+    const ct=r.headers.get('content-type')||'';
+    if(!ct.includes('application/json')) throw new Error(`Route ${isEdit?'PUT':'POST'} /api/utilisateurs manquante sur le backend`);
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error||d.message||`Erreur ${r.status}`);
+    toast(`✅ Utilisateur ${isEdit?'modifié':'créé'} avec succès`,'ok');
+    closeAddModal(); loadUtilisateurs();
+  } catch(e){
+    toast(e.message||'Erreur serveur','err');
+    if(btn){btn.disabled=false;btn.textContent=isEdit?'Enregistrer les modifications':'Créer l\'utilisateur';}
+  }
+}
+
+async function saveAgent(id){
+  const isEdit=id!==null&&id!='null';
+  const prenom=document.getElementById('af-prenom')?.value.trim();
+  const nom=document.getElementById('af-nom')?.value.trim();
+  const email=document.getElementById('af-email')?.value.trim();
+  const niveau=document.getElementById('af-niveau')?.value;
+  const specialite=document.getElementById('af-specialite')?.value;
+  if(!prenom||!nom||!email) return toast('Prénom, nom et email requis','err');
+  const body={prenom,nom,email,niveau,specialite};
+  if(!isEdit){
+    const pass=document.getElementById('af-pass')?.value;
+    if(!pass||pass.length<6) return toast('Mot de passe requis (6 caractères min)','err');
+    body.mot_de_passe=pass;
+  }
+  const btn=document.getElementById('add-modal-body').querySelector('button.bfull');
+  if(btn){btn.disabled=true;btn.textContent='Enregistrement...';}
+  try {
+    const url=isEdit?`${API}/agents/${id}`:`${API}/agents`;
+    const r=await fetch(url,{method:isEdit?'PUT':'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${agentToken}`},body:JSON.stringify(body)});
+    const ct=r.headers.get('content-type')||'';
+    if(!ct.includes('application/json')) throw new Error(`Route ${isEdit?'PUT':'POST'} /api/agents manquante sur le backend`);
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error||d.message||`Erreur ${r.status}`);
+    toast(`✅ Agent ${isEdit?'modifié':'créé'} avec succès`,'ok');
+    closeAddModal(); loadGestionAgents();
+  } catch(e){
+    toast(e.message||'Erreur serveur','err');
+    if(btn){btn.disabled=false;btn.textContent=isEdit?'Enregistrer les modifications':'Créer l\'agent';}
+  }
+}
+
+// ── CONFIRM DELETE ────────────────────────
+let _confirmCallback=null;
+
+function confirmDelete(type, id, name){
+  document.getElementById('confirm-title').textContent=`Supprimer ${type==='user'?"l'utilisateur":"l'agent"} ?`;
+  document.getElementById('confirm-msg').textContent=`"${name}" sera définitivement supprimé. Cette action est irréversible.`;
+  _confirmCallback=()=>deleteRecord(type,id,name);
+  document.getElementById('confirm-ok-btn').onclick=()=>{_confirmCallback&&_confirmCallback();};
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+function closeConfirmModal(){document.getElementById('confirmModal').classList.remove('open'); _confirmCallback=null;}
+
+async function deleteRecord(type, id, name){
+  closeConfirmModal();
+  const url=type==='user'?`${API}/utilisateurs/${id}`:`${API}/agents/${id}`;
+  try {
+    const r=await fetch(url,{method:'DELETE',headers:{Authorization:`Bearer ${agentToken}`}});
+    if(!r.ok) throw new Error();
+    toast(`✅ ${name} supprimé`,'ok');
+    if(type==='user') loadUtilisateurs();
+    else loadGestionAgents();
+  } catch {
+    // En mode démo, simuler la suppression localement
+    if(type==='user') allUsersData=allUsersData.filter(u=>u.id!==id), renderUsers(allUsersData);
+    else allAgentsMgmt=allAgentsMgmt.filter(a=>a.id!==id), renderAgentsMgmt(allAgentsMgmt);
+    toast(`✅ ${name} supprimé (local)`,'ok');
+  }
+}
+
+// Auto-login
+const st=localStorage.getItem('sd_agent_token');
+const su=localStorage.getItem('sd_agent_user');
+if (st&&su){agentToken=st;agentUser=JSON.parse(su);initAdmin(agentToken,agentUser);}
+</script>
+</body>
+</html>
